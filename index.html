@@ -1,0 +1,3179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ApexSales - Gestão de Métricas & Alta Performance em Direito Bancário</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Firebase SDKs (App, Auth, Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="scale" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            Alta Performance <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">Direito Bancário</span>
+          </h1>
+          <p class="text-xs text-slate-400">Sistema de Métricas, Prospecção e Fechamento</p>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons in Header -->
+      <div class="flex items-center gap-2">
+        <!-- Botão/Chip Dinâmico de Login Google -->
+        <div id="google-header-auth-box" class="flex items-center gap-1.5">
+          <a href="/api/auth/google" id="btn-google-login-header" class="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span class="hidden sm:inline">Entrar com o Google</span>
+            <span class="sm:hidden">Google</span>
+          </a>
+        </div>
+        <button id="save-status" onclick="handleSaveStatusClick()" title="Status do salvamento dos dados" class="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border border-slate-600 text-slate-300"></button>
+        <button onclick="openMeetingModal()" class="inline-flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95">
+          <i data-lucide="calendar-plus" class="w-4 h-4"></i>
+          <span class="hidden lg:inline">Agendar Reunião</span>
+        </button>
+        <button onclick="openModal('modalQuickOutreach')" class="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95">
+          <i data-lucide="phone-call" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Lançar Chamadas Hoje</span>
+        </button>
+        <button onclick="openModal('modalAddLead')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all active:scale-95">
+          <i data-lucide="user-plus" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Novo Lead Respondido</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- NAVIGATION TABS -->
+  <nav class="bg-white border-b border-slate-200 sticky top-16 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-1 sm:space-x-8 overflow-x-auto py-2 custom-scrollbar">
+        <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-indigo-600 text-indigo-600 whitespace-nowrap">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard de Performance
+        </button>
+        <button onclick="switchTab('leads')" id="tab-btn-leads" class="tab-btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Leads Respondidos & Pipeline (<span id="badge-leads-count">0</span>)
+        </button>
+        <button onclick="switchTab('agenda')" id="tab-btn-agenda" class="tab-btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+          <i data-lucide="calendar-days" class="w-4 h-4 text-indigo-500"></i>
+          Agenda (<span id="badge-agenda-count">0</span> hoje)
+        </button>
+        <button onclick="switchTab('closed')" id="tab-btn-closed" class="tab-btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+          <i data-lucide="trophy" class="w-4 h-4 text-amber-500"></i>
+          Contratos Fechados & Estudos (<span id="badge-closed-count">0</span>)
+        </button>
+        <button onclick="switchTab('outreach')" id="tab-btn-outreach" class="tab-btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+          <i data-lucide="calendar" class="w-4 h-4"></i>
+          Histórico de Chamadas Diárias
+        </button>
+        <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-700 whitespace-nowrap">
+          <i data-lucide="cloud" class="w-4 h-4 text-sky-500"></i>
+          Google, Firebase & Backup
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: DASHBOARD -->
+    <!-- ========================================== -->
+    <div id="tab-dashboard" class="tab-content space-y-6">
+
+      <!-- Period Filter & Welcome Banner -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Visão Geral de Desempenho</h2>
+          <p class="text-sm text-slate-500">Monitore sua conversão diária, volume de prospecção e faturamento.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+            <i data-lucide="filter" class="w-3.5 h-3.5"></i> Período:
+          </label>
+          <select id="filter-period" onchange="renderAll()" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+            <option value="current_month" selected>Mês Atual</option>
+            <option value="last_30_days">Últimos 30 Dias</option>
+            <option value="last_7_days">Últimos 7 Dias</option>
+            <option value="all_time">Todo o Histórico</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KEY PERFORMANCE CARDS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <!-- CARD 1: Faturamento Total -->
+        <div class="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-slate-800 shadow-md relative overflow-hidden">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl pointer-events-none"></div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider uppercase text-indigo-300">Faturamento Fechado</span>
+            <span class="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl"><i data-lucide="dollar-sign" class="w-4 h-4"></i></span>
+          </div>
+          <div class="text-2xl font-extrabold" id="kpi-total-revenue">R$ 0,00</div>
+          <div class="mt-3 pt-3 border-t border-slate-800 text-xs flex justify-between text-slate-300">
+            <span>À Vista: <strong class="text-emerald-400 font-semibold" id="kpi-cash-revenue">R$ 0,00</strong></span>
+            <span>Parcelado: <strong class="text-amber-400 font-semibold" id="kpi-installment-revenue">R$ 0,00</strong></span>
+          </div>
+        </div>
+
+        <!-- CARD 2: Volume de Prospecção -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider uppercase text-slate-500">Prospecção (Chamadas)</span>
+            <span class="p-2 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="phone-outgoing" class="w-4 h-4"></i></span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <div class="text-2xl font-extrabold text-slate-900" id="kpi-total-outreach">0</div>
+            <span class="text-xs text-slate-500 font-medium">pessoas chamadas</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600 flex justify-between">
+            <span>Média/Dia: <strong class="text-slate-900" id="kpi-avg-day">0</strong></span>
+            <span>Média/Semana: <strong class="text-slate-900" id="kpi-avg-week">0</strong></span>
+          </div>
+        </div>
+
+        <!-- CARD 3: Taxas de Conversão -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider uppercase text-slate-500">Eficiência do Funil</span>
+            <span class="p-2 bg-emerald-50 text-emerald-600 rounded-xl"><i data-lucide="trending-up" class="w-4 h-4"></i></span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <div class="text-2xl font-extrabold text-emerald-600" id="kpi-conversion-rate">0%</div>
+            <span class="text-xs text-slate-500 font-medium">taxa de fechamento</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600 flex justify-between">
+            <span>Respostas: <strong class="text-slate-900" id="kpi-replies-count">0</strong></span>
+            <span>Fechados: <strong class="text-emerald-700 font-bold" id="kpi-closed-count">0</strong></span>
+          </div>
+        </div>
+
+        <!-- CARD 4: Velocidade / Tempo Médio -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-bold tracking-wider uppercase text-slate-500">Ciclo Médio de Fechamento</span>
+            <span class="p-2 bg-purple-50 text-purple-600 rounded-xl"><i data-lucide="timer" class="w-4 h-4"></i></span>
+          </div>
+          <div class="flex items-baseline gap-2">
+            <div class="text-2xl font-extrabold text-purple-700" id="kpi-avg-close-time">0 dias</div>
+            <span class="text-xs text-slate-500 font-medium">do 1º contato ao fechamento</span>
+          </div>
+          <div class="mt-3 pt-3 border-t border-slate-100 text-xs text-slate-600 flex justify-between">
+            <span>Tempo p/ Resposta: <strong class="text-slate-900" id="kpi-avg-reply-time">0 dias</strong></span>
+            <span>Ticket Médio: <strong class="text-slate-900" id="kpi-ticket-avg">R$ 0</strong></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CHARTS SECTION -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Chart 1: Prospecção ao Longo do Tempo -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Volume Diário de Pessoas Chamadas</h3>
+              <p class="text-xs text-slate-400">Constância diária na prospecção ativa de clientes bancários</p>
+            </div>
+            <span class="text-xs bg-slate-100 text-slate-600 font-semibold px-2.5 py-1 rounded-md">Atividade Diária</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chartOutreachDaily"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: À Vista vs Parcelado -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Distribuição de Receita</h3>
+              <p class="text-xs text-slate-400">À Vista vs. Parcelado</p>
+            </div>
+            <i data-lucide="pie-chart" class="w-4 h-4 text-slate-400"></i>
+          </div>
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chartRevenueType"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Funil de Conversão -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs lg:col-span-2">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Funil de Vendas Bancário</h3>
+              <p class="text-xs text-slate-400">Chamados ➔ Responderam ➔ Contratos Fechados</p>
+            </div>
+            <span class="text-xs text-indigo-600 bg-indigo-50 font-semibold px-2.5 py-1 rounded-md">Gargalos e Conversão</span>
+          </div>
+          <div class="h-64 relative">
+            <canvas id="chartFunnel"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4: Tipos de Ação Bancária -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm">Ações Mais Vendidas</h3>
+              <p class="text-xs text-slate-400">Nichos com maior taxa de fechamento</p>
+            </div>
+            <i data-lucide="bar-chart-2" class="w-4 h-4 text-slate-400"></i>
+          </div>
+          <div class="h-64 relative flex items-center justify-center">
+            <canvas id="chartCaseTypes"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Próximas Reuniões -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div class="flex items-center justify-between mb-2">
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2"><i data-lucide="calendar-clock" class="w-4 h-4 text-indigo-600"></i> Próximas Reuniões</h3>
+            <p class="text-xs text-slate-400">Seus próximos compromissos com clientes</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="dash-meetings-overdue"></span>
+            <button onclick="switchTab('agenda')" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Ver agenda →</button>
+          </div>
+        </div>
+        <div id="dash-meetings-list" class="divide-y divide-slate-100"></div>
+      </div>
+
+      <!-- Quick Tips for High Performance -->
+      <div class="bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-transparent p-5 rounded-2xl border border-amber-200/40">
+        <div class="flex items-start gap-3">
+          <div class="p-2 bg-amber-500 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
+            <i data-lucide="zap" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 text-sm">Mentalidade de Vendas de Alta Performance em Direito Bancário</h4>
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+              Vendas jurídicas são um jogo de <strong>Volume + Velocidade de Resposta + Quebra de Objeções (Segurança/Autoridade)</strong>. 
+              Ao bater sua meta de prospecção diária (ex: 40-50 contatos/dia) e responder no momento exato em que o cliente dá retorno, sua conversão aumenta em até 3x. Cadastre apenas os clientes que responderem para nunca perder tempo com cadastros em vão!
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: LEADS EM ATENDIMENTO (PIPELINE) -->
+    <!-- ========================================== -->
+    <div id="tab-leads" class="tab-content hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Leads que Responderam (Pipeline Ativo)</h2>
+          <p class="text-sm text-slate-500">Cadastre aqui apenas quando a pessoa der retorno. Acompanhe follow-ups e feche contratos.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-400"></i>
+            <input type="text" id="search-leads" oninput="renderLeadsTable()" placeholder="Buscar por nome ou fone..." class="pl-9 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs w-48 sm:w-64 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <button onclick="openModal('modalAddLead')" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            Novo Lead
+          </button>
+        </div>
+      </div>
+
+      <!-- Leads List / Cards -->
+      <div id="leads-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+      <div id="leads-empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i data-lucide="user-x" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+        <h3 class="text-base font-bold text-slate-700">Nenhum lead aguardando atendimento</h3>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">Quando alguém responder a sua mensagem de prospecção, clique no botão acima para cadastrar nome, data do contato e resposta.</p>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: CONTRATOS FECHADOS & ESTUDOS -->
+    <!-- ========================================== -->
+    <div id="tab-closed" class="tab-content hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="award" class="w-6 h-6 text-amber-500"></i> Contratos Fechados & Base de Conhecimento
+          </h2>
+          <p class="text-sm text-slate-500">Revise cada venda fechada, estude os relatos, argumentos vencedores e tempo de negociação.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i> <span id="closed-tab-total-badge">0 Contratos</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Closed Deals Grid -->
+      <div id="closed-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Rendered via JS -->
+      </div>
+      <div id="closed-empty-state" class="hidden text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
+        <i data-lucide="trophy" class="w-12 h-12 mx-auto text-slate-300 mb-3"></i>
+        <h3 class="text-base font-bold text-slate-700">Ainda não há contratos fechados no período</h3>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto mt-1">Ao marcar um lead como fechado, você registrará o valor, forma de pagamento e o relato da negociação para estudar depois.</p>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: HISTÓRICO DE CHAMADAS DIÁRIAS -->
+    <!-- ========================================== -->
+    <div id="tab-outreach" class="tab-content hidden space-y-6">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Histórico de Prospecção Diária</h2>
+          <p class="text-sm text-slate-500">Quantas pessoas você chamou em cada dia de trabalho (sem precisar cadastrar uma a uma).</p>
+        </div>
+        <button onclick="openModal('modalQuickOutreach')" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm transition-all">
+          <i data-lucide="plus" class="w-4 h-4"></i> Lançar Chamadas
+        </button>
+      </div>
+
+      <!-- Table of daily records -->
+      <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4">Data</th>
+                <th class="py-3 px-4">Dia da Semana</th>
+                <th class="py-3 px-4">Pessoas Chamadas</th>
+                <th class="py-3 px-4">Classificação de Meta</th>
+                <th class="py-3 px-4 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="outreach-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: AGENDA DE REUNIÕES -->
+    <!-- ========================================== -->
+    <div id="tab-agenda" class="tab-content hidden space-y-6">
+
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2"><i data-lucide="calendar-days" class="w-6 h-6 text-indigo-600"></i> Agenda de Reuniões</h2>
+          <p class="text-sm text-slate-500">Todas as suas reuniões com clientes, integradas ao Google Agenda.</p>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button onclick="exportAllMeetingsICS()" class="inline-flex items-center gap-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-3.5 py-2 rounded-lg text-xs font-semibold">
+            <i data-lucide="calendar-arrow-down" class="w-4 h-4"></i> Exportar agenda (.ics)
+          </button>
+          <button onclick="openMeetingModal()" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg text-xs font-semibold shadow-sm">
+            <i data-lucide="calendar-plus" class="w-4 h-4"></i> Nova Reunião
+          </button>
+        </div>
+      </div>
+
+      <!-- Agenda KPIs -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="sun" class="w-3.5 h-3.5 text-amber-500"></i> Hoje</div>
+          <div class="text-2xl font-extrabold text-slate-900 mt-1" id="agenda-kpi-today">0</div>
+          <div class="text-[11px] text-slate-400">reuniões no dia</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="calendar-range" class="w-3.5 h-3.5 text-indigo-500"></i> Próximos 7 dias</div>
+          <div class="text-2xl font-extrabold text-indigo-700 mt-1" id="agenda-kpi-week">0</div>
+          <div class="text-[11px] text-slate-400">reuniões agendadas</div>
+        </div>
+        <button onclick="setAgendaFilter('overdue')" class="text-left bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs hover:border-amber-300 transition">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-500"></i> Sem resultado</div>
+          <div class="text-2xl font-extrabold text-amber-600 mt-1" id="agenda-kpi-overdue">0</div>
+          <div class="text-[11px] text-slate-400">já passaram, marque como foi</div>
+        </button>
+        <div class="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5"><i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-500"></i> Comparecimento</div>
+          <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="agenda-kpi-done">—</div>
+          <div class="text-[11px] text-slate-400" id="agenda-kpi-done-sub">0 realizadas · 0 faltas</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Calendário -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs h-fit">
+          <div class="flex items-center justify-between mb-3">
+            <button onclick="changeCalendarMonth(-1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+            <div class="text-sm font-bold text-slate-900" id="cal-month-label">Mês</div>
+            <button onclick="changeCalendarMonth(1)" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase text-slate-400 mb-1">
+            <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+          </div>
+          <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
+          <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span class="text-[11px] text-slate-400 flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-full bg-amber-500"></span> nº de reuniões no dia</span>
+            <button onclick="goToToday()" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700">Hoje</button>
+          </div>
+        </div>
+
+        <!-- Lista -->
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs lg:col-span-2">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+            <h3 class="font-bold text-slate-900 text-sm" id="agenda-list-title">Próximas reuniões</h3>
+            <select id="agenda-filter" onchange="if(this.value!=='day') selectedAgendaDate=null; renderAgenda(); lucide.createIcons();" class="bg-slate-50 border border-slate-300 text-slate-700 text-xs rounded-lg px-3 py-2 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="upcoming" selected>Próximas</option>
+              <option value="today">Hoje</option>
+              <option value="day">Dia selecionado no calendário</option>
+              <option value="overdue">Sem resultado (já passaram)</option>
+              <option value="done">Histórico (realizadas, faltas, canceladas)</option>
+              <option value="all">Todas</option>
+            </select>
+          </div>
+          <div id="agenda-list" class="space-y-2"></div>
+        </div>
+      </div>
+
+      <div class="bg-indigo-50/60 border border-indigo-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed flex gap-3">
+        <i data-lucide="info" class="w-5 h-5 text-indigo-600 shrink-0"></i>
+        <div>
+          <strong class="text-slate-800">Integração 100% Automática com Google Agenda (via Firebase/Google API):</strong>
+          Quando sua conta Google está conectada (botão <strong>Conectar Google</strong> no topo), toda reunião agendada, remarcada, realizada ou cancelada aqui é <strong>criada, atualizada ou removida diretamente no seu Google Agenda</strong> sem precisar salvar manualmente em outra aba, incluindo geração automática de link do <strong>Google Meet</strong> para videochamadas.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 5: GOOGLE, FIREBASE & BACKUP -->
+    <!-- ========================================== -->
+    <div id="tab-settings" class="tab-content hidden space-y-6">
+
+      <!-- PAINEL PRINCIPAL: GOOGLE FIREBASE + GOOGLE PLANILHAS + GOOGLE AGENDA -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold mb-2">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-600"></i> Integração Automática Google Workspace (1 Clique)
+            </div>
+            <h2 class="text-xl font-bold text-slate-900">Google Planilhas, Google Agenda & Google Firebase</h2>
+            <p class="text-sm text-slate-500">Conexão transparente para o cliente: com apenas 1 clique no botão do Google, sua planilha e agenda são provisionadas e sincronizadas automaticamente.</p>
+          </div>
+          <div id="cloud-account-badge" class="shrink-0">
+            <!-- Preenchido dinamicamente via JS -->
+          </div>
+        </div>
+
+        <!-- Aviso se aberto via file:// -->
+        <div id="file-protocol-warning" class="hidden bg-amber-50 border-2 border-amber-300 rounded-xl p-4 text-xs text-amber-900 space-y-2">
+          <div class="font-bold text-sm flex items-center gap-2 text-amber-800">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0"></i>
+            Atenção: Abra pelo Servidor Local (http://localhost:3000) para usar o Login Google
+          </div>
+          <p class="leading-relaxed">
+            O Google bloqueia autenticações abertas diretamente via <code>file:///</code>.
+            Execute o arquivo <strong><code>INICIAR_SISTEMA.bat</code></strong> ou acesse:
+            <a href="http://localhost:3000" class="underline font-bold text-indigo-700 hover:text-indigo-900 ml-1">Abrir http://localhost:3000 →</a>
+          </p>
+        </div>
+
+        <!-- Status Cards das 3 Nuvens -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 1. Conta Google & Firebase -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="user-check" class="w-4 h-4 text-sky-600"></i> 1. Conta Google
+              </span>
+              <span id="status-pill-firebase" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Desconectado</span>
+            </div>
+            <p class="text-xs text-slate-600" id="status-desc-firebase">Clique para conectar seu Gmail. Zero formulários técnicos para preencher.</p>
+            <div class="pt-2 flex flex-wrap gap-2" id="firebase-auth-actions-box">
+              <a href="/api/auth/google" class="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-lg text-xs font-bold flex items-center gap-2 shadow-xs transition">
+                <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                <span>Entrar com o Google</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- 2. Google Planilhas -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> 2. Google Planilhas
+              </span>
+              <span id="status-pill-sheets" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Desconectado</span>
+            </div>
+            <p class="text-xs text-slate-600" id="status-desc-sheets">Criada automaticamente no seu Google Drive com abas Resumo, Reuniões, Leads e Prospecção.</p>
+            <div class="pt-2 flex flex-wrap gap-2" id="sheets-actions-box">
+              <span class="text-xs text-slate-400">Faça login para criar/conectar</span>
+            </div>
+          </div>
+
+          <!-- 3. Google Agenda -->
+          <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                <i data-lucide="calendar-check-2" class="w-4 h-4 text-indigo-600"></i> 3. Google Agenda & Meet
+              </span>
+              <span id="status-pill-calendar" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">Desconectado</span>
+            </div>
+            <p class="text-xs text-slate-600" id="status-desc-calendar">Cria reuniões diretamente na sua agenda e gera salas do Google Meet automaticamente.</p>
+            <div class="pt-2 flex flex-wrap gap-2" id="calendar-actions-box">
+              <button onclick="syncAllMeetingsToGoogleCalendar(true)" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Sincronizar Agenda Agora
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Caixa de Vinculação de Planilha Específica -->
+        <div id="spreadsheet-link-panel" class="hidden p-4 rounded-xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="text-xs text-emerald-950 space-y-0.5">
+            <div class="font-bold flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>
+              Planilha Google Vinculada: <span id="connected-sheet-title" class="underline">Alta Performance - Direito Bancário (Oficial)</span>
+            </div>
+            <div class="text-emerald-700" id="connected-sheet-sync-time">Sincronização contínua com suas abas de Reuniões, Leads e Prospecção.</div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <a id="connected-sheet-url" href="#" target="_blank" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Minha Planilha
+            </a>
+            <button onclick="syncToGoogleSheets(true)" class="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-100 text-emerald-800 rounded-lg text-xs font-semibold inline-flex items-center gap-1.5">
+              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Enviar Todos os Dados
+            </button>
+          </div>
+        </div>
+
+        <!-- Seção do Desenvolvedor (Configuração Única) -->
+        <div class="border-t border-slate-100 pt-4">
+          <details class="text-xs text-slate-600 cursor-pointer">
+            <summary class="font-bold text-slate-700 hover:text-indigo-600 flex items-center gap-1.5 select-none">
+              <i data-lucide="code-2" class="w-4 h-4 text-slate-400"></i>
+              Área do Desenvolvedor: Status do Backend & Variáveis (.env)
+            </summary>
+            <div class="mt-3 p-4 bg-slate-900 text-slate-300 rounded-xl space-y-2 font-mono text-[11px]">
+              <div class="text-emerald-400 font-bold">✔ Abordagem 2 Ativa (Zero Configuração para o Cliente Final)</div>
+              <div>• Backend: <span class="text-sky-300">server.js (Node.js + Express + Google APIs + Firebase Admin)</span></div>
+              <div>• Arquivo de Chaves: <span class="text-amber-300">.env</span> (na pasta do sistema)</div>
+              <div>• Escopos Usados: <span class="text-indigo-300">drive.file, calendar.events, userinfo.email, userinfo.profile</span></div>
+              <div class="pt-2 text-slate-400">Para trocar as credenciais mestres do Google Cloud ou Firebase, edite o arquivo <code>.env</code> e reinicie o servidor.</div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">Segurança Local, Exportação e Backup</h2>
+          <p class="text-sm text-slate-500">Além da nuvem Google, seus dados são salvos automaticamente no disco do seu computador (<code>dados-sistema.json</code>) e no navegador.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Backup JSON -->
+          <div class="p-5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <i data-lucide="download" class="w-4 h-4 text-indigo-600"></i> Backup Completo (JSON)
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Gere um arquivo de segurança com todas as suas chamadas, leads, notas e contratos fechados.</p>
+            </div>
+            <button onclick="exportBackupJSON()" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2">
+              <i data-lucide="file-down" class="w-4 h-4"></i> Baixar Arquivo de Backup
+            </button>
+          </div>
+
+          <!-- Restore JSON -->
+          <div class="p-5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <i data-lucide="upload" class="w-4 h-4 text-blue-600"></i> Restaurar Backup
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Restaure um arquivo JSON salvo anteriormente para recuperar todos os seus registros.</p>
+            </div>
+            <label class="w-full py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer">
+              <i data-lucide="folder-up" class="w-4 h-4 text-slate-500"></i> Selecionar Arquivo JSON
+              <input type="file" id="import-json-file" accept=".json" onchange="importBackupJSON(event)" class="hidden">
+            </label>
+          </div>
+
+          <!-- Export CSV (Excel) -->
+          <div class="p-5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <i data-lucide="sheet" class="w-4 h-4 text-emerald-600"></i> Exportar para Excel / Planilha (CSV)
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Exporte uma planilha formatada com a lista de clientes, valores à vista/parcelado e datas.</p>
+            </div>
+            <button onclick="exportToCSV()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-2">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Baixar Planilha CSV
+            </button>
+          </div>
+
+          <!-- Salvamento permanente em arquivo -->
+          <div class="md:col-span-2 p-5 rounded-xl border-2 border-indigo-200 bg-indigo-50/40 space-y-3">
+            <div class="flex items-start gap-3">
+              <div class="p-2 bg-indigo-600 text-white rounded-xl shrink-0"><i data-lucide="hard-drive" class="w-5 h-5"></i></div>
+              <div class="flex-1">
+                <div class="font-bold text-sm text-slate-900">Salvamento Automático em Arquivo (recomendado)</div>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                  Por padrão, os dados ficam guardados no navegador — se você limpar o histórico/cache, eles podem ser perdidos.
+                  Conecte um arquivo no seu computador e <strong>toda alteração (chamadas, leads, anotações, reuniões, contratos) será gravada nele automaticamente</strong>.
+                  Dica: salve o arquivo dentro da pasta do <strong>Google Drive</strong> ou <strong>OneDrive</strong> para ter cópia na nuvem.
+                </p>
+                <div id="file-save-panel-status" class="text-xs mt-2 text-slate-700"></div>
+              </div>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="connectDataFile()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2">
+                <i data-lucide="file-plus" class="w-4 h-4"></i> Criar / escolher arquivo de dados
+              </button>
+              <button onclick="openExistingDataFile()" class="px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold flex items-center gap-2">
+                <i data-lucide="folder-open" class="w-4 h-4"></i> Abrir arquivo existente
+              </button>
+              <button id="btn-disconnect-file" onclick="disconnectDataFile()" class="hidden px-4 py-2 bg-rose-50 border border-rose-200 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-semibold">
+                Desativar
+              </button>
+            </div>
+          </div>
+
+          <!-- Clear -->
+          <div class="p-5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-3">
+            <div>
+              <div class="flex items-center gap-2 font-bold text-sm text-slate-800">
+                <i data-lucide="trash-2" class="w-4 h-4 text-rose-500"></i> Limpar dados
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Apaga todos os registros deste navegador (e da planilha Google, se estiver conectada) para recomeçar do zero. Faça um backup antes.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="clearAllData()" class="py-2 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-xs font-semibold border border-rose-200">
+                Limpar Tudo
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: REGISTRO RÁPIDO DE CHAMADAS DO DIA -->
+  <!-- ========================================== -->
+  <div id="modalQuickOutreach" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl">
+            <i data-lucide="phone-call" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Lançamento de Chamadas Diárias</h3>
+            <p class="text-xs text-slate-400">Poupe tempo: registre apenas o volume total!</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalQuickOutreach')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-quick-outreach" onsubmit="handleSaveOutreach(event)" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Data da Prospecção</label>
+          <input type="date" id="outreach-date" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Quantas pessoas você chamou neste dia?</label>
+          <input type="number" id="outreach-count" min="0" required placeholder="Ex: 50" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2.5 text-base font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <!-- Quick increment buttons -->
+        <div>
+          <span class="text-xs text-slate-400 font-medium mb-1.5 block">Botões rápidos de incremento:</span>
+          <div class="grid grid-cols-4 gap-2">
+            <button type="button" onclick="incrementOutreach(10)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">+10</button>
+            <button type="button" onclick="incrementOutreach(20)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">+20</button>
+            <button type="button" onclick="incrementOutreach(30)" class="py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition">+30</button>
+            <button type="button" onclick="incrementOutreach(50)" class="py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition">+50</button>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modalQuickOutreach')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm">Salvar Chamadas</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: CADASTRAR / EDITAR LEAD RESPONDIDO -->
+  <!-- ========================================== -->
+  <div id="modalAddLead" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+      <div class="bg-emerald-800 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-emerald-500/20 text-emerald-200 rounded-xl">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm" id="modal-lead-title">Cadastrar Lead que Respondeu</h3>
+            <p class="text-xs text-emerald-200">Registre os dados para acompanhamento até o fechamento</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalAddLead')" class="text-emerald-200 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-lead" onsubmit="handleSaveLead(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="lead-id">
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Nome do Cliente *</label>
+            <input type="text" id="lead-name" required placeholder="Ex: Roberto Carlos da Silva" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Telefone / WhatsApp *</label>
+            <input type="text" id="lead-phone" required placeholder="(11) 99999-9999" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo de Ação Bancária *</label>
+            <select id="lead-casetype" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="Revisional de Veículo">Revisional de Veículo</option>
+              <option value="Empréstimo Consignado">Empréstimo Consignado / RMC / RCC</option>
+              <option value="Juros Abusivos Geral">Juros Abusivos Cartão / Cheque Especial</option>
+              <option value="Golpe do Pix / Fraude Bancária">Golpe do Pix / Fraude Bancária</option>
+              <option value="Busca e Apreensão">Busca e Apreensão</option>
+              <option value="Superendividamento">Lei do Superendividamento</option>
+              <option value="Financiamento Imobiliário">Financiamento Imobiliário</option>
+              <option value="Outro">Outro Direito Bancário</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Quando você chamou? *</label>
+            <input type="date" id="lead-contact-date" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Quando ela respondeu? *</label>
+            <input type="date" id="lead-reply-date" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Status no Funil</label>
+            <select id="lead-status" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <option value="Respondeu / Qualificação">Respondeu / Qualificação</option>
+              <option value="Análise de Extrato / Contrato">Análise de Extrato / Contrato Bancário</option>
+              <option value="Proposta Apresentada">Proposta Apresentada</option>
+              <option value="Negociação / Objeções">Em Negociação / Objeções</option>
+              <option value="Perdido / Sem Perfil">Perdido / Sem Perfil</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Anotações Iniciais / Situação do Cliente</label>
+            <textarea id="lead-initial-note" rows="3" placeholder="Ex: Tem contrato no Banco X com juros de 18% a.m., parcela de R$ 850. Disse que está sufocado financeiramente..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+          <button type="button" onclick="closeModal('modalAddLead')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg shadow-sm">Salvar Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 3: FECHAR CONTRATO & RELATO DE VENDA -->
+  <!-- ========================================== -->
+  <div id="modalCloseDeal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200 max-h-[90vh] flex flex-col">
+      <div class="bg-gradient-to-r from-amber-600 to-amber-700 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-amber-500/20 text-amber-200 rounded-xl">
+            <i data-lucide="trophy" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Parabéns pelo Fechamento! 🏆</h3>
+            <p class="text-xs text-amber-100">Registre os valores e o estudo de caso da venda</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalCloseDeal')" class="text-amber-200 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-close-deal" onsubmit="handleSaveCloseDeal(event)" class="p-6 space-y-4 overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="close-lead-id">
+
+        <div class="bg-amber-50 border border-amber-200/70 p-3 rounded-xl flex items-center justify-between text-xs">
+          <div>
+            <span class="text-amber-800 font-bold block" id="close-client-name">Cliente: Nome</span>
+            <span class="text-amber-600" id="close-client-case">Tipo: Ação</span>
+          </div>
+          <span class="text-slate-500" id="close-client-dates">Primeiro Contato: 00/00/0000</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Data do Fechamento *</label>
+            <input type="date" id="close-date" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Modalidade de Pagamento *</label>
+            <select id="close-payment-type" onchange="toggleInstallmentFields()" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none">
+              <option value="avista">À Vista</option>
+              <option value="parcelado">Parcelado</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Valor Total dos Honorários (R$) *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-2.5 text-slate-400 font-bold text-sm">R$</span>
+              <input type="number" step="0.01" min="1" id="close-value-total" required placeholder="3500.00" class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-10 pr-3 py-2 text-base font-bold text-slate-900 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Parcelado extra info -->
+          <div id="close-installment-box" class="sm:col-span-2 hidden grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Número de Parcelas</label>
+              <input type="number" id="close-installments-qty" min="2" max="36" placeholder="Ex: 6" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Valor de Cada Parcela (R$)</label>
+              <input type="number" step="0.01" id="close-installment-val" placeholder="Ex: 583.33" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs">
+            </div>
+          </div>
+        </div>
+
+        <!-- RELATO DE VENDA PARA ESTUDO -->
+        <div class="pt-2 space-y-3">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="book-open" class="w-4 h-4 text-amber-600"></i>
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-800">Relato & Estudo de Venda (Alta Performance)</h4>
+          </div>
+          <p class="text-xs text-slate-500">Documente o que fez essa pessoa fechar com você para replicar nos próximos clientes!</p>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Qual foi o principal gatilho/dor do cliente e objeções vencidas?</label>
+            <textarea id="close-notes-trigger" rows="2" placeholder="Ex: O cliente tinha medo de perder o carro na busca e apreensão. Demonstrei a liminar obtida em caso similar e gerei alívio imediato..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Relato geral de como foi a negociação e lições aprendidas:</label>
+            <textarea id="close-notes-full" rows="3" placeholder="Ex: Começou resistente ao preço parcelado. Fiz uma ancoragem comparando o custo dos honorários com a dívida que o banco estava cobrando..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2 shrink-0">
+          <button type="button" onclick="closeModal('modalCloseDeal')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 rounded-lg shadow-sm">Gravar Fechamento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 4: ADICIONAR ANOTAÇÃO / FOLLOW-UP -->
+  <!-- ========================================== -->
+  <div id="modalAddNote" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl overflow-hidden border border-slate-200 animate-in fade-in zoom-in duration-200">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="edit-3" class="w-4 h-4 text-indigo-400"></i>
+          <h3 class="font-bold text-sm">Adicionar Anotação / Follow-up</h3>
+        </div>
+        <button onclick="closeModal('modalAddNote')" class="text-slate-400 hover:text-white">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="form-note" onsubmit="handleSaveNote(event)" class="p-6 space-y-4">
+        <input type="hidden" id="note-lead-id">
+        <p class="text-xs text-slate-500" id="note-lead-name">Cliente: ...</p>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Anotação / Resumo do Contato</label>
+          <textarea id="note-content" required rows="4" placeholder="Ex: Mandei mensagem hoje, cliente disse que vai consultar a esposa hoje à noite. Fazer follow-up amanhã às 10h..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modalAddNote')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg">Adicionar Nota</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 5: AGENDAR / EDITAR REUNIÃO -->
+  <!-- ========================================== -->
+  <div id="modalMeeting" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[90vh] flex flex-col">
+      <div class="bg-indigo-800 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-indigo-500/30 text-indigo-100 rounded-xl"><i data-lucide="calendar-plus" class="w-4 h-4"></i></div>
+          <div>
+            <h3 class="font-bold text-sm" id="meeting-modal-title">Agendar Reunião</h3>
+            <p class="text-xs text-indigo-200">Fica salva na agenda e no histórico do cliente</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalMeeting')" class="text-indigo-200 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="form-meeting" onsubmit="handleSaveMeeting(event)" class="p-6 space-y-3 overflow-y-auto custom-scrollbar">
+        <input type="hidden" id="meeting-id">
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Cliente</label>
+          <select id="meeting-lead" onchange="onMeetingLeadChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Título *</label>
+          <input type="text" id="meeting-title" required oninput="this.dataset.auto='0'" placeholder="Ex: Apresentação de proposta" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Data *</label>
+            <input type="date" id="meeting-date" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Horário *</label>
+            <input type="time" id="meeting-time" required class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Duração</label>
+            <select id="meeting-duration" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-2 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="15">15 min</option>
+              <option value="30" selected>30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">1 hora</option>
+              <option value="90">1h30</option>
+              <option value="120">2 horas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tipo</label>
+            <select id="meeting-type" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="Videochamada">Videochamada</option>
+              <option value="Ligação">Ligação</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+          </div>
+          <div id="meeting-status-wrap" class="hidden">
+            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Status</label>
+            <select id="meeting-status" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+              <option value="agendada">Agendada</option>
+              <option value="realizada">Realizada</option>
+              <option value="nao_compareceu">Não compareceu</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Link da reunião ou endereço</label>
+          <input type="text" id="meeting-location" placeholder="Ex: https://meet.google.com/... ou endereço do escritório" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Pauta / O que preparar</label>
+          <textarea id="meeting-notes" rows="3" placeholder="Ex: Levar cálculo da revisional, explicar liminar, apresentar proposta à vista com desconto..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+        </div>
+
+        <label class="flex items-start gap-2.5 bg-indigo-50 border border-indigo-200 rounded-xl p-3 cursor-pointer">
+          <input type="checkbox" id="meeting-gcal" checked class="mt-0.5 w-4 h-4 accent-indigo-600">
+          <span class="text-xs text-slate-700">
+            <strong class="text-indigo-800">Sincronizar automaticamente com meu Google Agenda</strong><br>
+            <span id="meeting-gcal-subtext">Cria/atualiza o evento diretamente na sua conta Google conectada (e gera link do Google Meet se for videochamada).</span>
+          </span>
+        </label>
+
+        <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeModal('modalMeeting')" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancelar</button>
+          <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-sm">Salvar Reunião</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 6: PAINEL DO DESENVOLVEDOR (GOOGLE CLOUD & FIREBASE) -->
+  <!-- ========================================== -->
+  <div id="modalFirebaseConfig" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col">
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-indigo-500/20 text-indigo-300 rounded-xl"><i data-lucide="shield-check" class="w-5 h-5"></i></div>
+          <div>
+            <h3 class="font-bold text-sm">Configuração de Desenvolvedor (.env)</h3>
+            <p class="text-xs text-slate-400">Zero configuração para seus clientes: eles só clicam em "Entrar com o Google"</p>
+          </div>
+        </div>
+        <button onclick="closeModal('modalFirebaseConfig')" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-6 space-y-4 overflow-y-auto custom-scrollbar text-xs">
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2 text-emerald-950">
+          <div class="font-bold flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i>
+            Como funciona a Abordagem 2:
+          </div>
+          <p class="leading-relaxed text-emerald-900">
+            Você cadastra o Client ID e Secret do Google Cloud uma única vez no arquivo <code>.env</code> do seu servidor.
+            Depois disso, qualquer cliente que acessar o sistema verá apenas o botão <strong>"Entrar com o Google"</strong>. Ao clicar, a planilha é criada no Drive dele e o Google Agenda é conectado de forma totalmente invisível e automática!
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <h4 class="font-bold text-slate-900 uppercase tracking-wider text-[11px]">Passos de Configuração Única (Lado do Desenvolvedor):</h4>
+          <ol class="list-decimal list-inside space-y-2 text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <li>No Google Cloud Console, ative as APIs: <strong>Google Calendar API</strong> e <strong>Google Sheets API</strong>.</li>
+            <li>Em <strong>Tela de consentimento OAuth</strong>, configure como <em>Externo</em> e adicione os escopos de agenda e drive/planilhas.</li>
+            <li>Em <strong>Credenciais</strong>, crie um <em>ID do cliente OAuth (Aplicativo da Web)</em> com o URI de redirecionamento: <code>http://localhost:3000/api/auth/google/callback</code>.</li>
+            <li>Copie o <strong>Client ID</strong> e <strong>Client Secret</strong> gerados e cole no arquivo <code>.env</code> na pasta do sistema.</li>
+          </ol>
+        </div>
+
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end">
+          <button type="button" onclick="closeModal('modalFirebaseConfig')" class="px-5 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded-lg">Entendido</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // --- STORAGE KEYS ---
+    const STORAGE_KEY_OUTREACH = 'apexsales_outreach_v1';
+    const STORAGE_KEY_LEADS = 'apexsales_leads_v1';
+    const STORAGE_KEY_MEETINGS = 'apexsales_meetings_v1';
+
+    // --- APPLICATION STATE ---
+    let state = {
+      outreach: [], // [{ date: 'YYYY-MM-DD', count: 50 }]
+      meetings: [], // [{ id, leadId, title, date, time, duration, type, location, notes, status, outcome, googleAdded }]
+      leads: []     // [{ id, name, phone, caseType, contactDate, replyDate, status, notes: [{ date, text }], closing: { date, type: 'avista'|'parcelado', value, installmentsQty, installmentVal, trigger, story } }]
+    };
+
+    let currentGoogleUser = null;
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      // Set default dates
+      const today = getTodayDateStr();
+      document.getElementById('outreach-date').value = today;
+      document.getElementById('lead-contact-date').value = today;
+      document.getElementById('lead-reply-date').value = today;
+      document.getElementById('close-date').value = today;
+
+      // Render all views
+      renderAll();
+      lucide.createIcons();
+      updateSaveStatusUI();
+      initFileStorage();
+
+      // Inicializa a integração oficial Google & Firebase (Abordagem 2)
+      initGoogleAndFirebase();
+    });
+
+    // --- GOOGLE WORKSPACE & FIREBASE INTEGRATION (1-CLIQUE AUTOMÁTICO) ---
+    async function initGoogleAndFirebase() {
+      // 1. Verifica retorno de OAuth nos parâmetros de URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const authStatus = urlParams.get('auth_status');
+      const authError = urlParams.get('auth_error');
+      const fbToken = urlParams.get('fb_token');
+
+      if (authStatus === 'success') {
+        showNotification('🎉 Google Conectado com sucesso! Sua planilha oficial foi gerada no seu Drive.', 'success');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } else if (authError) {
+        showNotification('Aviso Google OAuth: ' + authError, 'warning');
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      // 2. Consulta a sessão atual no servidor backend
+      try {
+        const res = await fetch('/api/auth/status');
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          currentGoogleUser = data.user;
+          updateGoogleUIConnected(data.user);
+        } else {
+          updateGoogleUIDisconnected();
+        }
+      } catch (e) {
+        console.warn('Modo local (sem servidor conectado):', e.message);
+        updateGoogleUIDisconnected();
+      }
+
+      // 3. Inicializa Firebase SDK no frontend (se as credenciais existirem)
+      try {
+        const fbRes = await fetch('/api/firebase-config');
+        const fbData = await fbRes.json();
+        if (fbData.ok && fbData.config && fbData.config.apiKey && typeof firebase !== 'undefined') {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(fbData.config);
+          }
+          if (fbToken) {
+            await firebase.auth().signInWithCustomToken(fbToken);
+            console.log('✔ Firebase Auth conectado via Custom Token');
+          }
+        }
+      } catch (e) {
+        console.warn('Firebase frontend config:', e);
+      }
+
+      // 4. Carrega dados salvos no servidor/Firestore (se houver)
+      loadStateFromServer();
+    }
+
+    function updateGoogleUIConnected(user) {
+      // 1. Atualiza Header
+      const headerBox = document.getElementById('google-header-auth-box');
+      if (headerBox) {
+        headerBox.innerHTML = `
+          <div class="inline-flex items-center gap-2 bg-slate-800 border border-slate-700 px-2.5 py-1.5 rounded-lg shadow-xs">
+            ${user.picture ? `<img src="${escapeHtml(user.picture)}" class="w-5 h-5 rounded-full object-cover">` : `<div class="w-5 h-5 rounded-full bg-indigo-600 text-white font-bold text-[10px] flex items-center justify-center">${(user.name||'G')[0].toUpperCase()}</div>`}
+            <span class="text-xs text-slate-200 font-semibold hidden md:inline max-w-[130px] truncate">${escapeHtml(user.name || user.email)}</span>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.5 rounded border border-emerald-500/30">Google Ativo</span>
+            ${user.spreadsheetUrl ? `
+              <a href="${escapeHtml(user.spreadsheetUrl)}" target="_blank" title="Abrir Minha Planilha no Google Drive" class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 hover:text-emerald-300 hover:underline ml-1">
+                <i data-lucide="sheet" class="w-3.5 h-3.5"></i> <span class="hidden lg:inline">Planilha</span>
+              </a>` : ''}
+            <button onclick="disconnectGoogleAccount()" title="Desconectar conta Google" class="text-slate-400 hover:text-rose-400 text-xs ml-1 transition">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        `;
+      }
+
+      // 2. Atualiza Tab 5 (Configurações)
+      const pillFb = document.getElementById('status-pill-firebase');
+      const descFb = document.getElementById('status-desc-firebase');
+      const actionsFb = document.getElementById('firebase-auth-actions-box');
+      if (pillFb) { pillFb.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800'; pillFb.innerText = 'Conectado'; }
+      if (descFb) descFb.innerHTML = `Conectado como <strong>${escapeHtml(user.email)}</strong>. Sincronização segura ativa.`;
+      if (actionsFb) {
+        actionsFb.innerHTML = `
+          <button onclick="disconnectGoogleAccount()" class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold flex items-center gap-1.5">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Desconectar Gmail
+          </button>
+        `;
+      }
+
+      // 3. Atualiza Card Google Planilhas
+      const pillSheets = document.getElementById('status-pill-sheets');
+      const descSheets = document.getElementById('status-desc-sheets');
+      const actionsSheets = document.getElementById('sheets-actions-box');
+      if (pillSheets) { pillSheets.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800'; pillSheets.innerText = 'Ativa'; }
+      if (descSheets) descSheets.innerHTML = user.spreadsheetId ? `Planilha vinculada no seu Drive com abas Resumo, Reuniões, Leads e Prospecção.` : `Crie sua planilha oficial com um clique.`;
+      if (actionsSheets) {
+        if (user.spreadsheetUrl) {
+          actionsSheets.innerHTML = `
+            <a href="${escapeHtml(user.spreadsheetUrl)}" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir no Planilhas
+            </a>
+            <button onclick="syncToGoogleSheets(true)" class="px-3 py-1.5 bg-white border border-emerald-300 hover:bg-emerald-50 text-emerald-800 rounded-lg text-xs font-semibold inline-flex items-center gap-1">
+              <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Enviar Dados
+            </button>
+          `;
+        } else {
+          actionsSheets.innerHTML = `
+            <button onclick="syncToGoogleSheets(true)" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5 shadow-xs">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Gerar Minha Planilha Agora
+            </button>
+          `;
+        }
+      }
+
+      // 4. Painel de link da planilha
+      const linkPanel = document.getElementById('spreadsheet-link-panel');
+      if (linkPanel && user.spreadsheetUrl) {
+        linkPanel.classList.remove('hidden');
+        const linkUrl = document.getElementById('connected-sheet-url');
+        if (linkUrl) linkUrl.href = user.spreadsheetUrl;
+      }
+
+      // 5. Atualiza Card Google Agenda
+      const pillCal = document.getElementById('status-pill-calendar');
+      const descCal = document.getElementById('status-desc-calendar');
+      if (pillCal) { pillCal.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800'; pillCal.innerText = 'Ativo (com Meet)'; }
+      if (descCal) descCal.innerHTML = `Reuniões são sincronizadas diretamente com a sua Google Agenda e geram links do Google Meet.`;
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateGoogleUIDisconnected() {
+      const headerBox = document.getElementById('google-header-auth-box');
+      if (headerBox) {
+        headerBox.innerHTML = `
+          <a href="/api/auth/google" id="btn-google-login-header" class="inline-flex items-center gap-2 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+            <span class="hidden sm:inline">Entrar com o Google</span>
+            <span class="sm:hidden">Google</span>
+          </a>
+        `;
+      }
+      const pillFb = document.getElementById('status-pill-firebase');
+      if (pillFb) { pillFb.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600'; pillFb.innerText = 'Desconectado'; }
+      const pillSheets = document.getElementById('status-pill-sheets');
+      if (pillSheets) { pillSheets.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600'; pillSheets.innerText = 'Desconectado'; }
+      const linkPanel = document.getElementById('spreadsheet-link-panel');
+      if (linkPanel) linkPanel.classList.add('hidden');
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function connectGoogleAccount() {
+      window.location.href = '/api/auth/google';
+    }
+
+    async function disconnectGoogleAccount() {
+      if (!confirm('Deseja desconectar sua conta Google?')) return;
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+      } catch (e) {}
+      window.location.reload();
+    }
+
+    async function syncToGoogleSheets(manual = false) {
+      if (!currentGoogleUser?.hasGoogleSync) {
+        connectGoogleAccount();
+        return;
+      }
+      try {
+        if (manual) showNotification('Enviando dados para o Google Planilhas...', 'info');
+        const res = await fetch('/api/google/sheets/sync-all', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            data: {
+              outreach: state.outreach,
+              leads: state.leads,
+              meetings: state.meetings
+            }
+          })
+        });
+        const json = await res.json();
+        if (json.ok) {
+          if (json.spreadsheetUrl && !currentGoogleUser.spreadsheetUrl) {
+            currentGoogleUser.spreadsheetUrl = json.spreadsheetUrl;
+            currentGoogleUser.spreadsheetId = json.spreadsheetId;
+            updateGoogleUIConnected(currentGoogleUser);
+          }
+          if (manual) showNotification('✔ Google Planilhas atualizada com sucesso!', 'success');
+        } else {
+          if (manual) showNotification('Erro na sincronização: ' + (json.error || 'Falha ao sincronizar'), 'warning');
+        }
+      } catch (err) {
+        if (manual) showNotification('Erro de rede ao sincronizar planilha.', 'warning');
+      }
+    }
+
+    async function syncAllMeetingsToGoogleCalendar(manual = false) {
+      if (!currentGoogleUser?.hasGoogleSync) {
+        connectGoogleAccount();
+        return;
+      }
+      const activeMeetings = state.meetings.filter(m => m.status === 'agendada');
+      if (!activeMeetings.length) {
+        showNotification('Nenhuma reunião pendente para sincronizar.', 'info');
+        return;
+      }
+      showNotification(`Sincronizando ${activeMeetings.length} reuniões com seu Google Agenda...`, 'info');
+      let count = 0;
+      for (const m of activeMeetings) {
+        const lead = getLead(m.leadId);
+        try {
+          const syncRes = await fetch('/api/google/meeting/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...m,
+              clientName: lead?.name || '',
+              clientPhone: lead?.phone || '',
+              clientEmail: lead?.email || ''
+            })
+          });
+          const syncJson = await syncRes.json();
+          if (syncJson.ok) {
+            m.googleAdded = true;
+            m.googleEventId = syncJson.eventId;
+            if (syncJson.meetLink) m.meetLink = syncJson.meetLink;
+            count++;
+          }
+        } catch (e) {}
+      }
+      saveState();
+      renderAll();
+      showNotification(`✔ ${count} reuniões sincronizadas com Google Agenda & Meet!`, 'success');
+    }
+
+    function showNotification(text, type = 'info') {
+      let box = document.getElementById('global-toast-box');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'global-toast-box';
+        box.className = 'fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none';
+        document.body.appendChild(box);
+      }
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600 text-white' : type === 'warning' ? 'bg-amber-600 text-white' : 'bg-slate-900 text-white border border-slate-700';
+      toast.className = `${bg} px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 pointer-events-auto transition-all transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${escapeHtml(text)}</span>`;
+      box.appendChild(toast);
+      setTimeout(() => { toast.classList.remove('translate-y-2', 'opacity-0'); }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 400);
+      }, 4000);
+    }
+
+    function getTodayDateStr() {
+      return toLocalDateStr(new Date());
+    }
+
+    function formatDateBR(dateStr) {
+      if (!dateStr) return '-';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    function formatMoneyBR(num) {
+      return (Number(num) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // --- STORAGE HANDLING ---
+    function loadState() {
+      try {
+        const storedOutreach = localStorage.getItem(STORAGE_KEY_OUTREACH);
+        const storedLeads = localStorage.getItem(STORAGE_KEY_LEADS);
+        state.outreach = storedOutreach ? JSON.parse(storedOutreach) : [];
+        state.leads = storedLeads ? JSON.parse(storedLeads) : [];
+        const storedMeetings = localStorage.getItem(STORAGE_KEY_MEETINGS);
+        state.meetings = storedMeetings ? JSON.parse(storedMeetings) : [];
+      } catch (e) {
+        console.error("Erro ao carregar dados do LocalStorage:", e);
+        state.outreach = [];
+        state.leads = [];
+      }
+    }
+
+    async function loadStateFromServer() {
+      try {
+        const res = await fetch('/api/data');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.ok && json.data) {
+            let updated = false;
+            if (Array.isArray(json.data.outreach) && json.data.outreach.length) { state.outreach = json.data.outreach; updated = true; }
+            if (Array.isArray(json.data.leads) && json.data.leads.length) { state.leads = json.data.leads; updated = true; }
+            if (Array.isArray(json.data.meetings) && json.data.meetings.length) { state.meetings = json.data.meetings; updated = true; }
+            if (updated) renderAll();
+          }
+        }
+      } catch (e) {
+        // Operando offline / sem servidor
+      }
+    }
+
+    let serverSaveTimer = null;
+    function scheduleServerSave() {
+      clearTimeout(serverSaveTimer);
+      serverSaveTimer = setTimeout(async () => {
+        try {
+          await fetch('/api/data', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              outreach: state.outreach,
+              leads: state.leads,
+              meetings: state.meetings
+            })
+          });
+        } catch (e) {
+          // Silencioso em caso de erro local
+        }
+      }, 700);
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY_OUTREACH, JSON.stringify(state.outreach));
+        localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(state.leads));
+        localStorage.setItem(STORAGE_KEY_MEETINGS, JSON.stringify(state.meetings));
+      } catch (e) {
+        console.error("Erro ao salvar dados no LocalStorage:", e);
+      }
+      scheduleFileSave();
+      scheduleServerSave();
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-600', 'text-indigo-600', 'active');
+        btn.classList.add('border-transparent', 'text-slate-500');
+      });
+
+      const activeContent = document.getElementById(`tab-${tabId}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+        activeBtn.classList.add('border-indigo-600', 'text-indigo-600', 'active');
+      }
+
+      // Re-trigger layout or charts if dashboard
+      if (tabId === 'dashboard') {
+        renderCharts();
+      }
+      if (tabId === 'agenda') {
+        renderAgenda();
+      }
+      lucide.createIcons();
+    }
+
+    // --- MODAL HANDLING ---
+    function openModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) modal.classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) modal.classList.add('hidden');
+    }
+
+    // --- QUICK OUTREACH HANDLING ---
+    function incrementOutreach(amount) {
+      const input = document.getElementById('outreach-count');
+      const current = parseInt(input.value) || 0;
+      input.value = current + amount;
+    }
+
+    function handleSaveOutreach(e) {
+      e.preventDefault();
+      const date = document.getElementById('outreach-date').value;
+      const count = parseInt(document.getElementById('outreach-count').value) || 0;
+
+      if (!date || count < 0) {
+        alert("Preencha a data e uma quantidade válida.");
+        return;
+      }
+
+      // Find if entry already exists for this date
+      const existingIndex = state.outreach.findIndex(item => item.date === date);
+      if (existingIndex >= 0) {
+        state.outreach[existingIndex].count = count;
+      } else {
+        state.outreach.push({ date, count });
+      }
+
+      // Sort by date descending
+      state.outreach.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      saveState();
+      closeModal('modalQuickOutreach');
+      document.getElementById('form-quick-outreach').reset();
+      document.getElementById('outreach-date').value = getTodayDateStr();
+
+      renderAll();
+    }
+
+    function deleteOutreach(date) {
+      if (!confirm(`Deseja realmente remover o registro de chamadas do dia ${formatDateBR(date)}?`)) return;
+      state.outreach = state.outreach.filter(item => item.date !== date);
+      saveState();
+      renderAll();
+    }
+
+    // --- LEADS MANAGEMENT ---
+    function handleSaveLead(e) {
+      e.preventDefault();
+      const id = document.getElementById('lead-id').value || 'lead_' + Date.now();
+      const name = document.getElementById('lead-name').value.trim();
+      const phone = document.getElementById('lead-phone').value.trim();
+      const caseType = document.getElementById('lead-casetype').value;
+      const contactDate = document.getElementById('lead-contact-date').value;
+      const replyDate = document.getElementById('lead-reply-date').value;
+      const status = document.getElementById('lead-status').value;
+      const initialNote = document.getElementById('lead-initial-note').value.trim();
+
+      const existingIndex = state.leads.findIndex(l => l.id === id);
+
+      if (existingIndex >= 0) {
+        // Updating existing
+        state.leads[existingIndex].name = name;
+        state.leads[existingIndex].phone = phone;
+        state.leads[existingIndex].caseType = caseType;
+        state.leads[existingIndex].contactDate = contactDate;
+        state.leads[existingIndex].replyDate = replyDate;
+        state.leads[existingIndex].status = status;
+        if (initialNote) {
+          state.leads[existingIndex].notes.push({
+            date: new Date().toISOString(),
+            text: initialNote
+          });
+        }
+      } else {
+        // Creating new
+        const notes = [];
+        if (initialNote) {
+          notes.push({
+            date: new Date().toISOString(),
+            text: initialNote
+          });
+        }
+        state.leads.push({
+          id,
+          name,
+          phone,
+          caseType,
+          contactDate,
+          replyDate,
+          status,
+          notes,
+          closing: null
+        });
+      }
+
+      saveState();
+      closeModal('modalAddLead');
+      document.getElementById('form-lead').reset();
+      document.getElementById('lead-id').value = '';
+      document.getElementById('modal-lead-title').innerText = 'Cadastrar Lead que Respondeu';
+      renderAll();
+    }
+
+    function editLead(id) {
+      const lead = state.leads.find(l => l.id === id);
+      if (!lead) return;
+
+      document.getElementById('lead-id').value = lead.id;
+      document.getElementById('lead-name').value = lead.name;
+      document.getElementById('lead-phone').value = lead.phone;
+      document.getElementById('lead-casetype').value = lead.caseType;
+      document.getElementById('lead-contact-date').value = lead.contactDate;
+      document.getElementById('lead-reply-date').value = lead.replyDate;
+      document.getElementById('lead-status').value = lead.status;
+      document.getElementById('lead-initial-note').value = '';
+      document.getElementById('modal-lead-title').innerText = 'Editar Dados do Lead';
+
+      openModal('modalAddLead');
+    }
+
+    function deleteLead(id) {
+      if (!confirm("Tem certeza que deseja excluir este lead e seus históricos?")) return;
+      state.leads = state.leads.filter(l => l.id !== id);
+      state.meetings = state.meetings.filter(m => m.leadId !== id);
+      saveState();
+      renderAll();
+    }
+
+    // --- NOTES MODAL ---
+    function openAddNoteModal(leadId) {
+      const lead = state.leads.find(l => l.id === leadId);
+      if (!lead) return;
+
+      document.getElementById('note-lead-id').value = lead.id;
+      document.getElementById('note-lead-name').innerText = `Cliente: ${lead.name} (${lead.caseType})`;
+      document.getElementById('note-content').value = '';
+      openModal('modalAddNote');
+    }
+
+    function handleSaveNote(e) {
+      e.preventDefault();
+      const leadId = document.getElementById('note-lead-id').value;
+      const text = document.getElementById('note-content').value.trim();
+
+      const lead = state.leads.find(l => l.id === leadId);
+      if (lead && text) {
+        if (!lead.notes) lead.notes = [];
+        lead.notes.push({
+          date: new Date().toISOString(),
+          text
+        });
+        saveState();
+      }
+      closeModal('modalAddNote');
+      renderAll();
+    }
+
+    // --- CLOSING DEALS MODAL & LOGIC ---
+    function openCloseDealModal(leadId) {
+      const lead = state.leads.find(l => l.id === leadId);
+      if (!lead) return;
+
+      document.getElementById('close-lead-id').value = lead.id;
+      document.getElementById('close-client-name').innerText = `Cliente: ${lead.name}`;
+      document.getElementById('close-client-case').innerText = `Ação: ${lead.caseType} | Tel: ${lead.phone}`;
+      document.getElementById('close-client-dates').innerText = `Primeiro Contato: ${formatDateBR(lead.contactDate)} | Resposta: ${formatDateBR(lead.replyDate)}`;
+
+      document.getElementById('close-date').value = getTodayDateStr();
+      document.getElementById('close-payment-type').value = 'avista';
+      document.getElementById('close-value-total').value = '';
+      document.getElementById('close-installments-qty').value = '';
+      document.getElementById('close-installment-val').value = '';
+      document.getElementById('close-notes-trigger').value = '';
+      document.getElementById('close-notes-full').value = '';
+
+      toggleInstallmentFields();
+      openModal('modalCloseDeal');
+    }
+
+    function toggleInstallmentFields() {
+      const type = document.getElementById('close-payment-type').value;
+      const box = document.getElementById('close-installment-box');
+      if (type === 'parcelado') {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
+    }
+
+    function handleSaveCloseDeal(e) {
+      e.preventDefault();
+      const leadId = document.getElementById('close-lead-id').value;
+      const lead = state.leads.find(l => l.id === leadId);
+      if (!lead) return;
+
+      const date = document.getElementById('close-date').value;
+      const type = document.getElementById('close-payment-type').value;
+      const value = parseFloat(document.getElementById('close-value-total').value) || 0;
+      const installmentsQty = parseInt(document.getElementById('close-installments-qty').value) || 1;
+      const installmentVal = parseFloat(document.getElementById('close-installment-val').value) || 0;
+      const trigger = document.getElementById('close-notes-trigger').value.trim();
+      const story = document.getElementById('close-notes-full').value.trim();
+
+      lead.status = 'Fechado (Contrato Assinado)';
+      lead.closing = {
+        date,
+        type,
+        value,
+        installmentsQty,
+        installmentVal,
+        trigger,
+        story
+      };
+
+      saveState();
+      closeModal('modalCloseDeal');
+      renderAll();
+      // Congratulatory alert or toast
+      alert(`Parabéns! Contrato de ${formatMoneyBR(value)} gravado com sucesso!`);
+    }
+
+    // --- FILTER HELPERS ---
+    function getFilteredData() {
+      const filter = document.getElementById('filter-period').value;
+      const now = new Date();
+      
+      const filterByDate = (dateStr) => {
+        if (!dateStr) return false;
+        if (filter === 'all_time') return true;
+        const d = new Date(dateStr + 'T00:00:00');
+        
+        if (filter === 'current_month') {
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }
+        if (filter === 'last_30_days') {
+          const diffTime = Math.abs(now - d);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return diffDays <= 30;
+        }
+        if (filter === 'last_7_days') {
+          const diffTime = Math.abs(now - d);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          return diffDays <= 7;
+        }
+        return true;
+      };
+
+      const filteredOutreach = state.outreach.filter(o => filterByDate(o.date));
+      const filteredLeads = state.leads.filter(l => filterByDate(l.replyDate) || (l.closing && filterByDate(l.closing.date)));
+      const filteredClosed = state.leads.filter(l => l.closing && filterByDate(l.closing.date));
+
+      return { filteredOutreach, filteredLeads, filteredClosed };
+    }
+
+    // --- RENDERING ALL VIEWS ---
+    function renderAll() {
+      renderKPICards();
+      renderLeadsTable();
+      renderClosedTable();
+      renderOutreachTable();
+      renderAgenda();
+      renderDashboardMeetings();
+      renderCharts();
+      updateBadges();
+      lucide.createIcons();
+    }
+
+    function updateBadges() {
+      const pendingLeads = state.leads.filter(l => l.status !== 'Fechado (Contrato Assinado)' && l.status !== 'Perdido / Sem Perfil');
+      document.getElementById('badge-leads-count').innerText = pendingLeads.length;
+
+      const closedLeads = state.leads.filter(l => l.closing);
+      document.getElementById('badge-closed-count').innerText = closedLeads.length;
+      document.getElementById('closed-tab-total-badge').innerText = `${closedLeads.length} Contratos Fechados`;
+      const todayStr = getTodayDateStr();
+      document.getElementById('badge-agenda-count').innerText = state.meetings.filter(m => m.date === todayStr && m.status === 'agendada').length;
+    }
+
+    // --- KPI CALCULATIONS & RENDERING ---
+    function renderKPICards() {
+      const { filteredOutreach, filteredLeads, filteredClosed } = getFilteredData();
+
+      // Total Outreach
+      const totalOutreach = filteredOutreach.reduce((acc, cur) => acc + (cur.count || 0), 0);
+      document.getElementById('kpi-total-outreach').innerText = totalOutreach.toLocaleString('pt-BR');
+
+      // Outreach averages
+      const distinctDays = Math.max(1, filteredOutreach.length);
+      const avgDay = Math.round(totalOutreach / distinctDays);
+      const avgWeek = Math.round(avgDay * 5); // 5 dias úteis de prospecção
+      document.getElementById('kpi-avg-day').innerText = `${avgDay}/dia`;
+      document.getElementById('kpi-avg-week').innerText = `~${avgWeek}/sem`;
+
+      // Financials
+      let totalRev = 0;
+      let cashRev = 0;
+      let instRev = 0;
+
+      filteredClosed.forEach(l => {
+        const val = l.closing.value || 0;
+        totalRev += val;
+        if (l.closing.type === 'avista') {
+          cashRev += val;
+        } else {
+          instRev += val;
+        }
+      });
+
+      document.getElementById('kpi-total-revenue').innerText = formatMoneyBR(totalRev);
+      document.getElementById('kpi-cash-revenue').innerText = formatMoneyBR(cashRev);
+      document.getElementById('kpi-installment-revenue').innerText = formatMoneyBR(instRev);
+
+      // Conversions
+      const closedCount = filteredClosed.length;
+      const repliesCount = filteredLeads.length;
+      document.getElementById('kpi-closed-count').innerText = closedCount;
+      document.getElementById('kpi-replies-count').innerText = repliesCount;
+
+      const convRate = totalOutreach > 0 ? ((closedCount / totalOutreach) * 100).toFixed(1) : (closedCount > 0 ? '100' : '0');
+      document.getElementById('kpi-conversion-rate').innerText = `${convRate}%`;
+
+      // Cycle times (in days)
+      let totalDaysToClose = 0;
+      let closeCountWithDates = 0;
+
+      let totalDaysToReply = 0;
+      let replyCountWithDates = 0;
+
+      state.leads.forEach(l => {
+        if (l.contactDate && l.replyDate) {
+          const dContact = new Date(l.contactDate + 'T00:00:00');
+          const dReply = new Date(l.replyDate + 'T00:00:00');
+          const diff = Math.max(0, Math.round((dReply - dContact) / (1000 * 60 * 60 * 24)));
+          totalDaysToReply += diff;
+          replyCountWithDates++;
+        }
+
+        if (l.closing && l.closing.date && l.contactDate) {
+          const dContact = new Date(l.contactDate + 'T00:00:00');
+          const dClose = new Date(l.closing.date + 'T00:00:00');
+          const diff = Math.max(0, Math.round((dClose - dContact) / (1000 * 60 * 60 * 24)));
+          totalDaysToClose += diff;
+          closeCountWithDates++;
+        }
+      });
+
+      const avgCloseDays = closeCountWithDates > 0 ? (totalDaysToClose / closeCountWithDates).toFixed(1) : 0;
+      const avgReplyDays = replyCountWithDates > 0 ? (totalDaysToReply / replyCountWithDates).toFixed(1) : 0;
+      const avgTicket = closedCount > 0 ? totalRev / closedCount : 0;
+
+      document.getElementById('kpi-avg-close-time').innerText = `${avgCloseDays} dias`;
+      document.getElementById('kpi-avg-reply-time').innerText = `${avgReplyDays} dias`;
+      document.getElementById('kpi-ticket-avg').innerText = formatMoneyBR(avgTicket);
+    }
+
+    // --- LEADS VIEW RENDERING ---
+    function renderLeadsTable() {
+      const container = document.getElementById('leads-container');
+      const emptyState = document.getElementById('leads-empty-state');
+      const search = (document.getElementById('search-leads').value || '').toLowerCase();
+
+      // Show non-closed leads primarily, or all matching search
+      const filtered = state.leads.filter(l => {
+        if (l.status === 'Fechado (Contrato Assinado)') return false;
+        if (!search) return true;
+        return (l.name || '').toLowerCase().includes(search) || (l.phone || '').includes(search) || (l.caseType || '').toLowerCase().includes(search);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      let html = '';
+      filtered.forEach(lead => {
+        // WhatsApp clean link
+        const cleanPhone = (lead.phone || '').replace(/\D/g, '');
+        const waLink = cleanPhone ? `https://wa.me/55${cleanPhone}` : '#';
+
+        // Calculate days waiting
+        const dContact = new Date(lead.contactDate + 'T00:00:00');
+        const dReply = new Date(lead.replyDate + 'T00:00:00');
+        const replyDaysDiff = Math.max(0, Math.round((dReply - dContact) / (1000 * 60 * 60 * 24)));
+
+        const notesCount = (lead.notes || []).length;
+        const lastNote = notesCount > 0 ? lead.notes[notesCount - 1].text : 'Nenhuma anotação ainda.';
+
+        // Status pill color
+        let statusColor = 'bg-blue-50 text-blue-700 border-blue-200';
+        if (lead.status.includes('Proposta')) statusColor = 'bg-amber-50 text-amber-700 border-amber-200';
+        if (lead.status.includes('Perdido')) statusColor = 'bg-rose-50 text-rose-700 border-rose-200';
+
+        html += `
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-sm">${escapeHtml(lead.name)}</h4>
+                  <span class="text-xs text-indigo-600 font-semibold">${escapeHtml(lead.caseType)}</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusColor}">
+                  ${escapeHtml(lead.status)}
+                </span>
+              </div>
+
+              <!-- Contact & dates badges -->
+              <div class="space-y-1.5 my-3 text-xs text-slate-500 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <div class="flex items-center justify-between">
+                  <span>Chamou em: <strong>${formatDateBR(lead.contactDate)}</strong></span>
+                  <span>Respondeu: <strong>${formatDateBR(lead.replyDate)}</strong></span>
+                </div>
+                <div class="text-[11px] text-slate-400">
+                  Tempo até resposta: <strong>${replyDaysDiff} dia(s)</strong>
+                </div>
+                <div class="flex items-center justify-between pt-1 border-t border-slate-200/60">
+                  <span class="font-mono text-slate-700">${escapeHtml(lead.phone)}</span>
+                  ${cleanPhone ? `<a href="${waLink}" target="_blank" class="inline-flex items-center gap-1 text-[11px] text-emerald-600 hover:text-emerald-700 font-bold"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Abrir Whats</a>` : ''}
+                </div>
+              </div>
+
+              <!-- Next meeting -->
+              ${getNextMeetingHtml(lead)}
+
+              <!-- Notes summary preview -->
+              <div class="mb-4">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                  <span>Última anotação (${notesCount}):</span>
+                  <button onclick="openAddNoteModal('${lead.id}')" class="text-indigo-600 hover:text-indigo-700 font-semibold text-[11px] flex items-center gap-0.5">
+                    <i data-lucide="plus" class="w-3 h-3"></i> Adicionar Nota
+                  </button>
+                </div>
+                <p class="text-xs text-slate-600 bg-amber-50/50 border border-amber-100 rounded-lg p-2 italic line-clamp-2">
+                  "${escapeHtml(lastNote)}"
+                </p>
+              </div>
+            </div>
+
+            <!-- Card Bottom Actions -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1">
+                <button onclick="editLead('${lead.id}')" title="Editar lead" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+                  <i data-lucide="edit" class="w-4 h-4"></i>
+                </button>
+                <button onclick="deleteLead('${lead.id}')" title="Excluir" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+                <button onclick="openMeetingModal('${lead.id}')" title="Agendar reunião" class="inline-flex items-center gap-1 px-2 py-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs font-semibold">
+                  <i data-lucide="calendar-plus" class="w-4 h-4"></i> Agendar
+                </button>
+              </div>
+              <button onclick="openCloseDealModal('${lead.id}')" class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-xs transition">
+                <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Fechar Contrato
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- CLOSED DEALS VIEW RENDERING ---
+    function renderClosedTable() {
+      const container = document.getElementById('closed-container');
+      const emptyState = document.getElementById('closed-empty-state');
+
+      const closedLeads = state.leads.filter(l => l.closing);
+
+      if (closedLeads.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      emptyState.classList.add('hidden');
+
+      // Sort by closing date desc
+      closedLeads.sort((a, b) => new Date(b.closing.date) - new Date(a.closing.date));
+
+      let html = '';
+      closedLeads.forEach(lead => {
+        const c = lead.closing;
+        const dContact = new Date(lead.contactDate + 'T00:00:00');
+        const dClose = new Date(c.date + 'T00:00:00');
+        const cycleDays = Math.max(0, Math.round((dClose - dContact) / (1000 * 60 * 60 * 24)));
+
+        const isAvista = c.type === 'avista';
+        const typeBadge = isAvista 
+          ? `<span class="bg-emerald-100 text-emerald-800 text-xs px-2.5 py-0.5 rounded-full font-bold">À Vista</span>`
+          : `<span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-0.5 rounded-full font-bold">Parcelado (${c.installmentsQty || 1}x de ${formatMoneyBR(c.installmentVal || 0)})</span>`;
+
+        html += `
+          <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs flex flex-col justify-between hover:shadow-md transition">
+            <div>
+              <div class="flex items-start justify-between mb-3">
+                <div>
+                  <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                    ${escapeHtml(lead.name)}
+                  </h4>
+                  <span class="text-xs text-indigo-600 font-semibold">${escapeHtml(lead.caseType)}</span>
+                </div>
+                <div class="text-right">
+                  <div class="text-lg font-extrabold text-slate-900">${formatMoneyBR(c.value)}</div>
+                  ${typeBadge}
+                </div>
+              </div>
+
+              <!-- Cycle & Timing Stats -->
+              <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 mb-4">
+                <div>
+                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Chamado</span>
+                  <strong>${formatDateBR(lead.contactDate)}</strong>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Fechou em</span>
+                  <strong>${formatDateBR(c.date)}</strong>
+                </div>
+                <div>
+                  <span class="text-[10px] text-slate-400 block uppercase font-bold">Tempo Total</span>
+                  <strong class="text-purple-700">${cycleDays} dias</strong>
+                </div>
+              </div>
+
+              <!-- Relato de Venda para Estudo -->
+              <div class="space-y-2">
+                ${c.trigger ? `
+                  <div class="bg-amber-50/60 border border-amber-200/50 p-2.5 rounded-xl">
+                    <span class="text-[11px] font-bold text-amber-900 flex items-center gap-1 mb-1">
+                      <i data-lucide="zap" class="w-3 h-3 text-amber-600"></i> Dor Principal / Gatilho Vencedor:
+                    </span>
+                    <p class="text-xs text-slate-700 italic">"${escapeHtml(c.trigger)}"</p>
+                  </div>
+                ` : ''}
+
+                ${c.story ? `
+                  <div class="bg-slate-50 border border-slate-200/60 p-2.5 rounded-xl">
+                    <span class="text-[11px] font-bold text-slate-800 flex items-center gap-1 mb-1">
+                      <i data-lucide="book-open" class="w-3 h-3 text-indigo-600"></i> Relato da Negociação & Aprendizados:
+                    </span>
+                    <p class="text-xs text-slate-600 leading-relaxed">${escapeHtml(c.story)}</p>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+
+            <div class="pt-3 mt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+              <span>Tel: ${escapeHtml(lead.phone)}</span>
+              <button onclick="editLead('${lead.id}')" class="text-indigo-600 hover:text-indigo-700 font-semibold text-xs flex items-center gap-1">
+                <i data-lucide="edit" class="w-3.5 h-3.5"></i> Editar Cadastro
+              </button>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- OUTREACH TABLE RENDERING ---
+    function renderOutreachTable() {
+      const tbody = document.getElementById('outreach-table-body');
+      if (state.outreach.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-400">Nenhum registro de chamadas ainda. Clique em "Lançar Chamadas" para começar!</td></tr>`;
+        return;
+      }
+
+      // Sort desc
+      const sorted = [...state.outreach].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      const daysOfWeek = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+      let html = '';
+      sorted.forEach(item => {
+        const d = new Date(item.date + 'T00:00:00');
+        const dayName = daysOfWeek[d.getDay()] || '';
+
+        // Performance Tier Badge
+        let tierBadge = '<span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-bold">Morno (<30)</span>';
+        if (item.count >= 60) {
+          tierBadge = '<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold flex items-center gap-1 w-fit"><i data-lucide="flame" class="w-3 h-3 text-emerald-600"></i> Alta Performance (60+)</span>';
+        } else if (item.count >= 40) {
+          tierBadge = '<span class="px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 font-bold flex items-center gap-1 w-fit">Excelente (40-59)</span>';
+        } else if (item.count >= 20) {
+          tierBadge = '<span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 font-bold flex items-center gap-1 w-fit">Bom (20-39)</span>';
+        }
+
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-bold text-slate-800">${formatDateBR(item.date)}</td>
+            <td class="py-3 px-4 text-slate-500">${dayName}</td>
+            <td class="py-3 px-4">
+              <span class="text-sm font-extrabold text-indigo-700">${item.count}</span>
+              <span class="text-slate-400 text-[11px]"> pessoas</span>
+            </td>
+            <td class="py-3 px-4">${tierBadge}</td>
+            <td class="py-3 px-4 text-right">
+              <button onclick="deleteOutreach('${item.date}')" title="Excluir" class="text-slate-400 hover:text-rose-600 p-1">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      lucide.createIcons();
+    }
+
+    // --- CHARTS LOGIC (CHART.JS) ---
+    let chartDailyInstance = null;
+    let chartRevenueInstance = null;
+    let chartFunnelInstance = null;
+    let chartCaseTypesInstance = null;
+
+    function renderCharts() {
+      const { filteredOutreach, filteredLeads, filteredClosed } = getFilteredData();
+
+      // CHART 1: DAILY OUTREACH
+      const ctxDaily = document.getElementById('chartOutreachDaily');
+      if (ctxDaily) {
+        if (chartDailyInstance) chartDailyInstance.destroy();
+
+        // Sort ascending for chronology
+        const sortedAsc = [...filteredOutreach].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const labels = sortedAsc.map(o => formatDateBR(o.date));
+        const values = sortedAsc.map(o => o.count);
+
+        chartDailyInstance = new Chart(ctxDaily, {
+          type: 'bar',
+          data: {
+            labels: labels.length ? labels : ['Sem dados'],
+            datasets: [{
+              label: 'Pessoas Chamadas',
+              data: values.length ? values : [0],
+              backgroundColor: '#4f46e5',
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // CHART 2: REVENUE TYPE (PIE / DOUGHNUT)
+      const ctxRev = document.getElementById('chartRevenueType');
+      if (ctxRev) {
+        if (chartRevenueInstance) chartRevenueInstance.destroy();
+
+        let cashVal = 0;
+        let instVal = 0;
+        filteredClosed.forEach(l => {
+          if (l.closing.type === 'avista') cashVal += l.closing.value;
+          else instVal += l.closing.value;
+        });
+
+        const hasRevenue = cashVal > 0 || instVal > 0;
+
+        chartRevenueInstance = new Chart(ctxRev, {
+          type: 'doughnut',
+          data: {
+            labels: ['À Vista', 'Parcelado'],
+            datasets: [{
+              data: hasRevenue ? [cashVal, instVal] : [1, 1],
+              backgroundColor: hasRevenue ? ['#10b981', '#f59e0b'] : ['#e2e8f0', '#cbd5e1']
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            cutout: '65%'
+          }
+        });
+      }
+
+      // CHART 3: FUNNEL
+      const ctxFunnel = document.getElementById('chartFunnel');
+      if (ctxFunnel) {
+        if (chartFunnelInstance) chartFunnelInstance.destroy();
+
+        const totalChamados = filteredOutreach.reduce((a, b) => a + (b.count || 0), 0);
+        const totalResponderam = filteredLeads.length;
+        const totalFechados = filteredClosed.length;
+
+        chartFunnelInstance = new Chart(ctxFunnel, {
+          type: 'bar',
+          data: {
+            labels: ['1. Pessoas Chamadas', '2. Responderam (Leads)', '3. Contratos Fechados'],
+            datasets: [{
+              label: 'Volume',
+              data: [totalChamados, totalResponderam, totalFechados],
+              backgroundColor: ['#6366f1', '#06b6d4', '#10b981'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            },
+            scales: {
+              x: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+              y: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // CHART 4: CASE TYPES
+      const ctxCases = document.getElementById('chartCaseTypes');
+      if (ctxCases) {
+        if (chartCaseTypesInstance) chartCaseTypesInstance.destroy();
+
+        const caseCounts = {};
+        state.leads.forEach(l => {
+          const type = l.caseType || 'Outro';
+          caseCounts[type] = (caseCounts[type] || 0) + 1;
+        });
+
+        const labels = Object.keys(caseCounts);
+        const values = Object.values(caseCounts);
+
+        chartCaseTypesInstance = new Chart(ctxCases, {
+          type: 'polarArea',
+          data: {
+            labels: labels.length ? labels : ['Sem dados'],
+            datasets: [{
+              data: values.length ? values : [0],
+              backgroundColor: [
+                '#6366f1', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#8b5cf6'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+    }
+
+    // --- BACKUP & EXPORT HELPERS ---
+    function exportBackupJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportPayload(), null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `apexsales_backup_${getTodayDateStr()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && (Array.isArray(imported.outreach) || Array.isArray(imported.leads))) {
+            state.outreach = imported.outreach || [];
+            state.leads = imported.leads || [];
+            state.meetings = imported.meetings || [];
+            saveState();
+            renderAll();
+            alert("Backup restaurado com sucesso!");
+          } else {
+            alert("Formato de arquivo inválido.");
+          }
+        } catch (err) {
+          alert("Erro ao ler arquivo de backup: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function exportToCSV() {
+      let csv = "\uFEFF"; // BOM para caracteres em português no Excel
+      csv += "Nome;Telefone;Acao Bancaria;Data Chamou;Data Respondeu;Status;Fechou;Data Fechamento;Modalidade;Valor (R$);Proxima Reuniao;Relato\n";
+      const q = v => `"${String(v ?? '').replace(/[\n\r]+/g, ' ').replace(/"/g, '""')}"`;
+
+      state.leads.forEach(l => {
+        const closed = l.closing ? "SIM" : "NAO";
+        const cDate = l.closing ? formatDateBR(l.closing.date) : "";
+        const cType = l.closing ? (l.closing.type === 'avista' ? 'A Vista' : 'Parcelado') : "";
+        const cVal = l.closing ? (l.closing.value || 0).toFixed(2).replace('.', ',') : "0,00";
+        const story = l.closing ? (l.closing.trigger || '') + ' - ' + (l.closing.story || '') : "";
+        const next = getNextMeeting(l.id);
+        const nextStr = next ? `${formatDateBR(next.date)} ${next.time}` : '';
+
+        csv += [l.name, l.phone, l.caseType, formatDateBR(l.contactDate), formatDateBR(l.replyDate), l.status, closed, cDate, cType, cVal, nextStr, story].map(q).join(';') + '\n';
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `relatorio_vendas_bancario_${getTodayDateStr()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function clearAllData() {
+      if (!confirm("ATENÇÃO: Deseja apagar TODOS os dados e começar do zero?\n\nSe o Google estiver conectado, a planilha também será esvaziada.")) return;
+      state.outreach = [];
+      state.leads = [];
+      state.meetings = [];
+      saveState();
+      renderAll();
+      alert("Todos os dados foram resetados.");
+    }
+
+    // ==========================================
+    // AGENDA DE REUNIÕES
+    // ==========================================
+    const MEETING_TYPE_ICONS = { 'Videochamada': 'video', 'Ligação': 'phone', 'Presencial': 'map-pin', 'WhatsApp': 'message-circle' };
+    const MEETING_STATUS = {
+      agendada: { label: 'Agendada', cls: 'bg-blue-50 text-blue-700 border-blue-200' },
+      realizada: { label: 'Realizada', cls: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      nao_compareceu: { label: 'Não compareceu', cls: 'bg-rose-50 text-rose-700 border-rose-200' },
+      cancelada: { label: 'Cancelada', cls: 'bg-slate-100 text-slate-500 border-slate-200' }
+    };
+    const WEEKDAYS_PT = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+    let calendarCursor = (() => { const d = new Date(); d.setDate(1); return d; })();
+    let selectedAgendaDate = null;
+
+    function toLocalDateStr(d) {
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+    function addDaysStr(ds, n) { const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate() + n); return toLocalDateStr(d); }
+    function meetingStart(m) { return new Date(`${m.date}T${m.time || '00:00'}:00`); }
+    function meetingEnd(m) { const d = meetingStart(m); d.setMinutes(d.getMinutes() + (Number(m.duration) || 30)); return d; }
+    function getLead(id) { return state.leads.find(l => l.id === id); }
+    function isMeetingOverdue(m) { return m.status === 'agendada' && meetingEnd(m) < new Date(); }
+    function waNumber(phone) {
+      const digits = String(phone || '').replace(/\D/g, '');
+      if (!digits) return '';
+      return (digits.length >= 12 && digits.startsWith('55')) ? digits : '55' + digits;
+    }
+    function friendlyDayLabel(ds) {
+      const today = getTodayDateStr();
+      const d = new Date(ds + 'T00:00:00');
+      let tag = '';
+      if (ds === today) tag = 'Hoje';
+      else if (ds === addDaysStr(today, 1)) tag = 'Amanhã';
+      else if (ds === addDaysStr(today, -1)) tag = 'Ontem';
+      return { weekday: WEEKDAYS_PT[d.getDay()], date: formatDateBR(ds), tag };
+    }
+    function shortDateLabel(ds) {
+      const f = friendlyDayLabel(ds);
+      return f.tag || `${f.weekday.slice(0, 3)}, ${f.date.slice(0, 5)}`;
+    }
+
+    function getNextMeeting(leadId) {
+      const now = new Date();
+      return state.meetings
+        .filter(m => m.leadId === leadId && m.status === 'agendada' && meetingEnd(m) >= now)
+        .sort((a, b) => meetingStart(a) - meetingStart(b))[0] || null;
+    }
+
+    function getNextMeetingHtml(lead) {
+      const next = getNextMeeting(lead.id);
+      if (next) {
+        return `
+          <div class="mb-3 flex items-center justify-between gap-2 bg-indigo-50 border border-indigo-100 rounded-xl px-2.5 py-2 text-xs">
+            <div class="flex items-center gap-2 text-indigo-800 min-w-0">
+              <i data-lucide="${MEETING_TYPE_ICONS[next.type] || 'calendar'}" class="w-3.5 h-3.5 shrink-0"></i>
+              <span class="truncate"><strong>${shortDateLabel(next.date)} às ${next.time}</strong> · ${escapeHtml(next.type)}</span>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+              <a href="${escapeHtml(buildGoogleCalendarUrl(next))}" target="_blank" onclick="markGoogleAdded('${next.id}')" title="Adicionar ao Google Agenda" class="p-1 rounded-md hover:bg-indigo-100 text-indigo-600"><i data-lucide="calendar-check" class="w-3.5 h-3.5"></i></a>
+              <button onclick="openMeetingModal('${lead.id}','${next.id}')" title="Editar reunião" class="p-1 rounded-md hover:bg-indigo-100 text-indigo-600"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+            </div>
+          </div>`;
+      }
+      const pending = state.meetings.filter(m => m.leadId === lead.id && isMeetingOverdue(m)).sort((a, b) => meetingStart(b) - meetingStart(a))[0];
+      if (pending) {
+        return `<button onclick="switchTab('agenda'); setAgendaFilter('overdue')" class="mb-3 w-full text-left flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-2.5 py-2 text-xs font-semibold hover:bg-amber-100">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 shrink-0"></i> Reunião de ${formatDateBR(pending.date)} sem resultado — clique para atualizar
+          </button>`;
+      }
+      return `<div class="mb-3 text-[11px] text-slate-400 flex items-center gap-1"><i data-lucide="calendar-x" class="w-3.5 h-3.5"></i> Nenhuma reunião agendada</div>`;
+    }
+
+    // --- Modal ---
+    function openMeetingModal(leadId = '', meetingId = '') {
+      const select = document.getElementById('meeting-lead');
+      const leads = [...state.leads].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      select.innerHTML = '<option value="">— Sem cliente vinculado —</option>' +
+        leads.map(l => `<option value="${l.id}">${escapeHtml(l.name)} · ${escapeHtml(l.caseType)}</option>`).join('');
+
+      document.getElementById('form-meeting').reset();
+      const m = meetingId ? state.meetings.find(x => x.id === meetingId) : null;
+      const titleInput = document.getElementById('meeting-title');
+
+      document.getElementById('meeting-modal-title').innerText = m ? 'Editar Reunião' : 'Agendar Reunião';
+      document.getElementById('meeting-id').value = m ? m.id : '';
+      document.getElementById('meeting-status-wrap').classList.toggle('hidden', !m);
+
+      if (m) {
+        select.value = m.leadId || '';
+        titleInput.value = m.title || '';
+        titleInput.dataset.auto = '0';
+        document.getElementById('meeting-date').value = m.date;
+        document.getElementById('meeting-time').value = m.time;
+        document.getElementById('meeting-duration').value = String(m.duration || 30);
+        document.getElementById('meeting-type').value = m.type || 'Videochamada';
+        document.getElementById('meeting-location').value = m.location || '';
+        document.getElementById('meeting-notes').value = m.notes || '';
+        document.getElementById('meeting-status').value = m.status || 'agendada';
+        document.getElementById('meeting-gcal').checked = !m.googleAdded;
+      } else {
+        select.value = leadId || '';
+        titleInput.value = '';
+        titleInput.dataset.auto = '1';
+        const today = getTodayDateStr();
+        document.getElementById('meeting-date').value = (selectedAgendaDate && selectedAgendaDate >= today) ? selectedAgendaDate : today;
+        const next = new Date(); next.setHours(Math.min(next.getHours() + 1, 23), 0, 0, 0);
+        document.getElementById('meeting-time').value = `${String(next.getHours()).padStart(2, '0')}:00`;
+        document.getElementById('meeting-gcal').checked = true;
+        onMeetingLeadChange();
+      }
+      openModal('modalMeeting');
+    }
+
+    function onMeetingLeadChange() {
+      const t = document.getElementById('meeting-title');
+      if (!t.value.trim() || t.dataset.auto === '1') {
+        const lead = getLead(document.getElementById('meeting-lead').value);
+        t.value = lead ? `Reunião com ${lead.name}` : '';
+        t.dataset.auto = '1';
+      }
+    }
+
+    function addLeadNote(lead, text) {
+      if (!lead) return;
+      if (!lead.notes) lead.notes = [];
+      lead.notes.push({ date: new Date().toISOString(), text });
+    }
+
+    async function handleSaveMeeting(e) {
+      e.preventDefault();
+      const id = document.getElementById('meeting-id').value;
+      const leadId = document.getElementById('meeting-lead').value;
+      const lead = getLead(leadId);
+      const data = {
+        leadId,
+        title: document.getElementById('meeting-title').value.trim() || (lead ? `Reunião com ${lead.name}` : 'Reunião'),
+        date: document.getElementById('meeting-date').value,
+        time: document.getElementById('meeting-time').value,
+        duration: parseInt(document.getElementById('meeting-duration').value) || 30,
+        type: document.getElementById('meeting-type').value,
+        location: document.getElementById('meeting-location').value.trim(),
+        notes: document.getElementById('meeting-notes').value.trim()
+      };
+      const sendToGoogle = document.getElementById('meeting-gcal').checked;
+
+      let meeting;
+      if (id) {
+        meeting = state.meetings.find(m => m.id === id);
+        if (!meeting) return;
+        const rescheduled = meeting.date !== data.date || meeting.time !== data.time;
+        data.status = document.getElementById('meeting-status').value;
+        Object.assign(meeting, data);
+        if (rescheduled) {
+          addLeadNote(lead, `🔁 Reunião remarcada para ${formatDateBR(data.date)} às ${data.time}`);
+        }
+      } else {
+        meeting = { id: 'meet_' + Date.now(), createdAt: new Date().toISOString(), googleAdded: false, status: 'agendada', ...data };
+        state.meetings.push(meeting);
+        addLeadNote(lead, `📅 Reunião agendada: ${formatDateBR(data.date)} às ${data.time} (${data.type})${data.notes ? ' — Pauta: ' + data.notes : ''}`);
+      }
+
+      saveState();
+      closeModal('modalMeeting');
+      renderAll();
+
+      // Sincronização automática e invisível com Google Agenda e Google Meet
+      if (sendToGoogle && currentGoogleUser?.hasGoogleSync) {
+        try {
+          showNotification('Sincronizando com Google Agenda & Meet...', 'info');
+          const syncRes = await fetch('/api/google/meeting/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...meeting,
+              clientName: lead?.name || '',
+              clientPhone: lead?.phone || '',
+              clientEmail: lead?.email || ''
+            })
+          });
+          const syncJson = await syncRes.json();
+          if (syncJson.ok) {
+            meeting.googleAdded = true;
+            meeting.googleEventId = syncJson.eventId;
+            if (syncJson.meetLink) {
+              meeting.meetLink = syncJson.meetLink;
+              if (!meeting.location || meeting.location.trim() === '') {
+                meeting.location = syncJson.meetLink;
+              }
+            }
+            saveState();
+            renderAll();
+            showNotification('✔ Reunião salva no Google Agenda com link Meet gerado!', 'success');
+          }
+        } catch (err) {
+          console.warn('Erro ao sincronizar reunião com Google:', err);
+        }
+      } else if (sendToGoogle && !currentGoogleUser?.hasGoogleSync) {
+        window.open(buildGoogleCalendarUrl(meeting), '_blank');
+        meeting.googleAdded = true;
+        saveState();
+        renderAll();
+      }
+    }
+
+    function setMeetingStatus(id, status) {
+      const m = state.meetings.find(x => x.id === id);
+      if (!m) return;
+      if (status === 'cancelada' && !confirm('Cancelar esta reunião? (Lembre-se de excluir o evento no Google Agenda)')) return;
+
+      let outcome = '';
+      if (status === 'realizada' || status === 'nao_compareceu') {
+        const q = status === 'realizada'
+          ? 'Como foi a reunião? (opcional — fica salvo nas anotações do cliente)'
+          : 'Observação sobre o não comparecimento (opcional):';
+        const r = prompt(q, '');
+        if (r === null) return;
+        outcome = r.trim();
+      }
+
+      m.status = status;
+      if (outcome) m.outcome = outcome;
+      m.statusUpdatedAt = new Date().toISOString();
+
+      const lead = getLead(m.leadId);
+      const labels = { realizada: '✅ Reunião realizada', nao_compareceu: '❌ Cliente não compareceu à reunião', cancelada: '🚫 Reunião cancelada', agendada: '📅 Reunião reaberta' };
+      addLeadNote(lead, `${labels[status]} (${formatDateBR(m.date)} ${m.time})${outcome ? ': ' + outcome : ''}`);
+
+      saveState();
+      renderAll();
+
+      if (status === 'nao_compareceu' && lead && confirm('Deseja já reagendar com este cliente?')) {
+        openMeetingModal(lead.id);
+      }
+    }
+
+    async function deleteMeeting(id) {
+      const m = state.meetings.find(x => x.id === id);
+      if (!m) return;
+      if (!confirm('Excluir esta reunião da agenda?')) return;
+
+      const eventId = m.googleEventId;
+      state.meetings = state.meetings.filter(x => x.id !== id);
+      saveState();
+      renderAll();
+
+      if (eventId && currentGoogleUser?.hasGoogleSync) {
+        try {
+          await fetch('/api/google/meeting/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId })
+          });
+        } catch (e) {
+          console.warn('Aviso ao excluir evento Google:', e);
+        }
+      }
+    }
+
+    function markGoogleAdded(id) {
+      const m = state.meetings.find(x => x.id === id);
+      if (!m || m.googleAdded) return;
+      m.googleAdded = true;
+      saveState();
+      setTimeout(renderAll, 300);
+    }
+
+    function sendWhatsAppReminder(id) {
+      const m = state.meetings.find(x => x.id === id);
+      const lead = m && getLead(m.leadId);
+      const phone = lead && waNumber(lead.phone);
+      if (!phone) { alert('Este cliente não possui telefone cadastrado.'); return; }
+      const first = (lead.name || '').split(' ')[0];
+      const f = friendlyDayLabel(m.date);
+      const when = f.tag ? f.tag.toLowerCase() : `${f.weekday.toLowerCase()} (${f.date})`;
+      const link = /^https?:\/\//i.test(m.location || '') ? `. Link: ${m.location}` : '';
+      const msg = `Olá, ${first}! Tudo bem? Passando para confirmar nossa reunião ${when} às ${m.time}${link}. Posso confirmar?`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    // --- Google Agenda & .ics ---
+    function toGCalDate(date, time, addMin = 0) {
+      const d = new Date(`${date}T${time || '09:00'}:00`);
+      d.setMinutes(d.getMinutes() + addMin);
+      const p = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+    }
+
+    function buildMeetingDetails(m) {
+      const lead = getLead(m.leadId);
+      const lines = [];
+      if (lead) {
+        lines.push(`Cliente: ${lead.name}`, `Telefone/WhatsApp: ${lead.phone}`, `Ação: ${lead.caseType}`, `Etapa: ${lead.status}`);
+        const wa = waNumber(lead.phone);
+        if (wa) lines.push(`WhatsApp: https://wa.me/${wa}`);
+      }
+      lines.push(`Tipo: ${m.type}`);
+      if (m.notes) lines.push('', 'Pauta / O que preparar:', m.notes);
+      return lines.join('\n');
+    }
+
+    function buildGoogleCalendarUrl(m) {
+      const params = new URLSearchParams({
+        action: 'TEMPLATE',
+        text: m.title || 'Reunião',
+        dates: `${toGCalDate(m.date, m.time)}/${toGCalDate(m.date, m.time, Number(m.duration) || 30)}`,
+        details: buildMeetingDetails(m),
+        location: m.location || '',
+        ctz: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'
+      });
+      return 'https://calendar.google.com/calendar/render?' + params.toString();
+    }
+
+    function icsEscape(s) {
+      return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+    }
+
+    function buildICS(list) {
+      const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Alta Performance//Agenda Direito Bancario//PT-BR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+      list.forEach(m => {
+        lines.push('BEGIN:VEVENT', `UID:${m.id}@alta-performance`, `DTSTAMP:${stamp}`,
+          `DTSTART:${toGCalDate(m.date, m.time)}`, `DTEND:${toGCalDate(m.date, m.time, Number(m.duration) || 30)}`,
+          `SUMMARY:${icsEscape(m.title)}`, `DESCRIPTION:${icsEscape(buildMeetingDetails(m))}`);
+        if (m.location) lines.push(`LOCATION:${icsEscape(m.location)}`);
+        if (m.status === 'cancelada') lines.push('STATUS:CANCELLED');
+        lines.push('BEGIN:VALARM', 'TRIGGER:-PT30M', 'ACTION:DISPLAY', 'DESCRIPTION:Lembrete de reunião', 'END:VALARM', 'END:VEVENT');
+      });
+      lines.push('END:VCALENDAR');
+      return lines.join('\r\n');
+    }
+
+    function downloadFile(content, filename, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function downloadMeetingICS(id) {
+      const m = state.meetings.find(x => x.id === id);
+      if (!m) return;
+      downloadFile(buildICS([m]), `reuniao_${m.date}_${m.time.replace(':', 'h')}.ics`, 'text/calendar;charset=utf-8');
+    }
+
+    function exportAllMeetingsICS() {
+      const list = state.meetings.filter(m => m.status === 'agendada' && meetingEnd(m) >= new Date());
+      if (!list.length) { alert('Não há reuniões futuras para exportar.'); return; }
+      downloadFile(buildICS(list), `agenda_reunioes_${getTodayDateStr()}.ics`, 'text/calendar;charset=utf-8');
+    }
+
+    // --- Rendering ---
+    function setAgendaFilter(f) {
+      document.getElementById('agenda-filter').value = f;
+      if (f !== 'day') selectedAgendaDate = null;
+      renderAgenda();
+      lucide.createIcons();
+    }
+
+    function selectAgendaDate(ds) {
+      if (selectedAgendaDate === ds) { setAgendaFilter('upcoming'); return; }
+      selectedAgendaDate = ds;
+      document.getElementById('agenda-filter').value = 'day';
+      renderAgenda();
+      lucide.createIcons();
+    }
+
+    function changeCalendarMonth(delta) {
+      calendarCursor.setMonth(calendarCursor.getMonth() + delta);
+      renderCalendar();
+    }
+
+    function goToToday() {
+      calendarCursor = new Date(); calendarCursor.setDate(1);
+      selectedAgendaDate = getTodayDateStr();
+      document.getElementById('agenda-filter').value = 'day';
+      renderAgenda();
+      lucide.createIcons();
+    }
+
+    function renderCalendar() {
+      const grid = document.getElementById('cal-grid');
+      if (!grid) return;
+      const y = calendarCursor.getFullYear(), mo = calendarCursor.getMonth();
+      const label = calendarCursor.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      document.getElementById('cal-month-label').innerText = label.charAt(0).toUpperCase() + label.slice(1);
+
+      const firstDow = new Date(y, mo, 1).getDay();
+      const days = new Date(y, mo + 1, 0).getDate();
+      const today = getTodayDateStr();
+
+      let html = '';
+      for (let i = 0; i < firstDow; i++) html += '<div></div>';
+      for (let d = 1; d <= days; d++) {
+        const ds = toLocalDateStr(new Date(y, mo, d));
+        const count = state.meetings.filter(m => m.date === ds && m.status !== 'cancelada').length;
+        const isSel = ds === selectedAgendaDate, isToday = ds === today;
+        let cls = 'hover:bg-slate-100 text-slate-700';
+        if (isSel) cls = 'bg-indigo-600 text-white shadow-sm';
+        else if (isToday) cls = 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-300';
+        const badge = count
+          ? `<span class="mt-0.5 text-[9px] leading-none px-1.5 py-0.5 rounded-full font-bold ${isSel ? 'bg-white text-indigo-700' : 'bg-amber-500 text-white'}">${count}</span>`
+          : '';
+        html += `<button onclick="selectAgendaDate('${ds}')" class="h-11 rounded-lg text-xs font-semibold flex flex-col items-center justify-center transition ${cls}">${d}${badge}</button>`;
+      }
+      grid.innerHTML = html;
+    }
+
+    function meetingItemHtml(m) {
+      const lead = getLead(m.leadId);
+      const overdue = isMeetingOverdue(m);
+      const st = MEETING_STATUS[m.status] || MEETING_STATUS.agendada;
+      const pill = overdue
+        ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200 whitespace-nowrap">Aguardando resultado</span>'
+        : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full border whitespace-nowrap ${st.cls}">${st.label}</span>`;
+      const isLink = /^https?:\/\//i.test(m.location || '');
+      const locationHtml = m.location
+        ? `<div class="text-xs text-slate-500 mt-1 flex items-center gap-1"><i data-lucide="${isLink ? 'link' : 'map-pin'}" class="w-3 h-3"></i>
+            ${isLink ? `<a href="${escapeHtml(m.location)}" target="_blank" class="text-indigo-600 hover:underline font-semibold">Entrar na reunião</a>` : escapeHtml(m.location)}</div>`
+        : '';
+      const btn = 'inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border transition';
+      const isActive = m.status === 'agendada';
+
+      return `
+        <div class="flex gap-3 p-3 rounded-xl border ${overdue ? 'border-amber-200 bg-amber-50/40' : 'border-slate-200 bg-white'} hover:border-slate-300 transition ${m.status === 'cancelada' ? 'opacity-60' : ''}">
+          <div class="w-14 shrink-0 text-center pt-0.5">
+            <div class="text-sm font-extrabold text-slate-900">${m.time}</div>
+            <div class="text-[10px] text-slate-400">${m.duration} min</div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <h4 class="font-bold text-sm text-slate-900 truncate ${m.status === 'cancelada' ? 'line-through' : ''}">${escapeHtml(m.title)}</h4>
+                <div class="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+                  <i data-lucide="${MEETING_TYPE_ICONS[m.type] || 'calendar'}" class="w-3 h-3"></i> ${escapeHtml(m.type)}
+                  ${lead ? ` · <span class="text-indigo-600 font-semibold">${escapeHtml(lead.name)}</span> · ${escapeHtml(lead.caseType)}` : ''}
+                </div>
+              </div>
+              ${pill}
+            </div>
+            ${locationHtml}
+            ${m.notes ? `<p class="text-xs text-slate-600 mt-1.5 bg-slate-50 border border-slate-100 rounded-lg p-2"><strong>Pauta:</strong> ${escapeHtml(m.notes)}</p>` : ''}
+            ${m.outcome ? `<p class="text-xs text-emerald-800 mt-1.5 bg-emerald-50 border border-emerald-100 rounded-lg p-2"><strong>Resultado:</strong> ${escapeHtml(m.outcome)}</p>` : ''}
+            <div class="flex flex-wrap items-center gap-1.5 mt-2.5">
+              ${m.meetLink ? `<a href="${escapeHtml(m.meetLink)}" target="_blank" class="${btn} border-emerald-400 bg-emerald-600 text-white hover:bg-emerald-500 font-bold shadow-xs"><i data-lucide="video" class="w-3.5 h-3.5"></i> Entrar no Meet</a>` : ''}
+              ${isActive ? `<a href="${escapeHtml(buildGoogleCalendarUrl(m))}" target="_blank" onclick="markGoogleAdded('${m.id}')" class="${btn} ${m.googleAdded ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}">
+                  <i data-lucide="${m.googleAdded ? 'calendar-check' : 'calendar-plus'}" class="w-3 h-3"></i> ${m.googleAdded ? 'No Google Agenda' : 'Adicionar ao Google Agenda'}</a>
+                <button onclick="downloadMeetingICS('${m.id}')" class="${btn} border-slate-200 text-slate-600 hover:bg-slate-50" title="Baixar evento (.ics)"><i data-lucide="download" class="w-3 h-3"></i> .ics</button>` : ''}
+              ${isActive && lead && lead.phone ? `<button onclick="sendWhatsAppReminder('${m.id}')" class="${btn} border-emerald-200 text-emerald-700 hover:bg-emerald-50"><i data-lucide="message-circle" class="w-3 h-3"></i> Confirmar no Whats</button>` : ''}
+              ${isActive ? `<button onclick="setMeetingStatus('${m.id}','realizada')" class="${btn} border-emerald-300 bg-emerald-600 text-white hover:bg-emerald-500"><i data-lucide="check" class="w-3 h-3"></i> Realizada</button>
+                <button onclick="setMeetingStatus('${m.id}','nao_compareceu')" class="${btn} border-rose-200 text-rose-600 hover:bg-rose-50"><i data-lucide="user-x" class="w-3 h-3"></i> Não compareceu</button>` : ''}
+              <div class="ml-auto flex items-center gap-0.5">
+                <button onclick="openMeetingModal('','${m.id}')" title="Editar / remarcar" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                ${isActive ? `<button onclick="setMeetingStatus('${m.id}','cancelada')" title="Cancelar" class="p-1.5 text-slate-400 hover:text-amber-600 rounded-md hover:bg-amber-50"><i data-lucide="ban" class="w-3.5 h-3.5"></i></button>` : ''}
+                <button onclick="deleteMeeting('${m.id}')" title="Excluir" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-md hover:bg-rose-50"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    function renderAgenda() {
+      const listEl = document.getElementById('agenda-list');
+      if (!listEl) return;
+      const today = getTodayDateStr();
+      const weekEnd = addDaysStr(today, 7);
+      const all = state.meetings;
+
+      document.getElementById('agenda-kpi-today').innerText = all.filter(m => m.date === today && m.status !== 'cancelada').length;
+      document.getElementById('agenda-kpi-week').innerText = all.filter(m => m.status === 'agendada' && m.date >= today && m.date <= weekEnd && !isMeetingOverdue(m)).length;
+      document.getElementById('agenda-kpi-overdue').innerText = all.filter(isMeetingOverdue).length;
+      const done = all.filter(m => m.status === 'realizada').length;
+      const noshow = all.filter(m => m.status === 'nao_compareceu').length;
+      document.getElementById('agenda-kpi-done').innerText = (done + noshow) > 0 ? Math.round(done / (done + noshow) * 100) + '%' : '—';
+      document.getElementById('agenda-kpi-done-sub').innerText = `${done} realizadas · ${noshow} faltas`;
+
+      renderCalendar();
+
+      const filter = document.getElementById('agenda-filter').value;
+      let items, asc = true, title;
+      switch (filter) {
+        case 'today': items = all.filter(m => m.date === today); title = 'Reuniões de hoje'; break;
+        case 'day': {
+          const d = selectedAgendaDate || today;
+          const f = friendlyDayLabel(d);
+          items = all.filter(m => m.date === d);
+          title = `Reuniões de ${f.weekday}, ${f.date}`;
+          break;
+        }
+        case 'overdue': items = all.filter(isMeetingOverdue); asc = false; title = 'Reuniões que já passaram sem resultado'; break;
+        case 'done': items = all.filter(m => m.status !== 'agendada'); asc = false; title = 'Histórico de reuniões'; break;
+        case 'all': items = [...all]; title = 'Todas as reuniões'; break;
+        default: items = all.filter(m => m.status === 'agendada' && !isMeetingOverdue(m)); title = 'Próximas reuniões';
+      }
+      document.getElementById('agenda-list-title').innerText = `${title} (${items.length})`;
+      items.sort((a, b) => asc ? meetingStart(a) - meetingStart(b) : meetingStart(b) - meetingStart(a));
+
+      if (!items.length) {
+        listEl.innerHTML = `
+          <div class="text-center py-12 border border-dashed border-slate-300 rounded-xl">
+            <i data-lucide="calendar-off" class="w-10 h-10 mx-auto text-slate-300 mb-2"></i>
+            <p class="text-sm font-semibold text-slate-600">Nenhuma reunião aqui</p>
+            <p class="text-xs text-slate-400 mt-1">Agende pelo botão "Agendar" no card do cliente ou em "Nova Reunião".</p>
+          </div>`;
+        return;
+      }
+
+      let html = '', lastDate = null;
+      items.forEach(m => {
+        if (m.date !== lastDate) {
+          const f = friendlyDayLabel(m.date);
+          html += `<div class="flex items-center gap-2 pt-3 first:pt-0">
+            <span class="text-xs font-bold text-slate-700">${f.weekday}, ${f.date}</span>
+            ${f.tag ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${f.tag === 'Hoje' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}">${f.tag}</span>` : ''}
+            <div class="flex-1 h-px bg-slate-100"></div>
+          </div>`;
+          lastDate = m.date;
+        }
+        html += meetingItemHtml(m);
+      });
+      listEl.innerHTML = html;
+    }
+
+    function renderDashboardMeetings() {
+      const el = document.getElementById('dash-meetings-list');
+      if (!el) return;
+      const now = new Date();
+      const upcoming = state.meetings
+        .filter(m => m.status === 'agendada' && meetingEnd(m) >= now)
+        .sort((a, b) => meetingStart(a) - meetingStart(b)).slice(0, 5);
+      const overdue = state.meetings.filter(isMeetingOverdue).length;
+
+      document.getElementById('dash-meetings-overdue').innerHTML = overdue
+        ? `<button onclick="switchTab('agenda'); setAgendaFilter('overdue')" class="text-[11px] font-bold px-2 py-1 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200">${overdue} sem resultado</button>`
+        : '';
+
+      if (!upcoming.length) {
+        el.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">Nenhuma reunião futura. Agende pelo botão "Agendar" no card do cliente.</p>';
+        return;
+      }
+      el.innerHTML = upcoming.map(m => {
+        const lead = getLead(m.leadId);
+        return `
+          <div class="flex items-center justify-between gap-3 py-2.5">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-20 text-center shrink-0 rounded-lg bg-indigo-50 py-1">
+                <div class="text-[10px] font-bold text-indigo-500 uppercase">${shortDateLabel(m.date)}</div>
+                <div class="text-sm font-extrabold text-indigo-800">${m.time}</div>
+              </div>
+              <div class="min-w-0">
+                <div class="text-sm font-semibold text-slate-900 truncate">${escapeHtml(m.title)}</div>
+                <div class="text-xs text-slate-500 truncate">${escapeHtml(m.type)}${lead ? ' · ' + escapeHtml(lead.caseType) : ''}</div>
+              </div>
+            </div>
+            <a href="${escapeHtml(buildGoogleCalendarUrl(m))}" target="_blank" onclick="markGoogleAdded('${m.id}')" title="${m.googleAdded ? 'Já adicionada ao Google Agenda' : 'Adicionar ao Google Agenda'}" class="p-2 rounded-lg ${m.googleAdded ? 'text-emerald-600 hover:bg-emerald-50' : 'text-indigo-600 hover:bg-indigo-50'}">
+              <i data-lucide="${m.googleAdded ? 'calendar-check' : 'calendar-plus'}" class="w-4 h-4"></i>
+            </a>
+          </div>`;
+      }).join('');
+    }
+
+    // ==========================================
+    // SALVAMENTO PERMANENTE EM ARQUIVO
+    // ==========================================
+    let dataFileHandle = null;
+    let fileSaveTimer = null;
+    let fileSaveState = 'none'; // none | ok | permission | error | unsupported
+    let lastFileSaveAt = null;
+    const FS_SUPPORTED = 'showSaveFilePicker' in window;
+
+    function exportPayload() {
+      return {
+        app: 'alta-performance-direito-bancario',
+        version: 2,
+        savedAt: new Date().toISOString(),
+        outreach: state.outreach,
+        leads: state.leads,
+        meetings: state.meetings
+      };
+    }
+
+    function idbOpen() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('apexsales_db', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('kv');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbSet(key, value) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put(value, key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    async function idbGet(key) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const req = db.transaction('kv', 'readonly').objectStore('kv').get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+    async function idbDel(key) {
+      const db = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').delete(key);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function countRecords(d) {
+      return (d.leads || []).length + (d.outreach || []).length + (d.meetings || []).length;
+    }
+
+    // Evita sobrescrever o arquivo com dados vazios (ex: se o navegador foi limpo)
+    async function syncWithFile(interactive) {
+      if (!dataFileHandle) return;
+      try {
+        const file = await dataFileHandle.getFile();
+        const txt = await file.text();
+        if (!txt.trim()) return;
+        const data = JSON.parse(txt);
+        const fileCount = countRecords(data), stateCount = countRecords(state);
+        if (!fileCount) return;
+        let load = false;
+        if (stateCount === 0) load = true;
+        else if (interactive && fileCount > stateCount) {
+          load = confirm(`O arquivo "${dataFileHandle.name}" tem mais registros (${fileCount}) que o navegador (${stateCount}). Carregar os dados do arquivo?`);
+        }
+        if (load) {
+          state.outreach = data.outreach || [];
+          state.leads = data.leads || [];
+          state.meetings = data.meetings || [];
+          localStorage.setItem(STORAGE_KEY_OUTREACH, JSON.stringify(state.outreach));
+          localStorage.setItem(STORAGE_KEY_LEADS, JSON.stringify(state.leads));
+          localStorage.setItem(STORAGE_KEY_MEETINGS, JSON.stringify(state.meetings));
+          renderAll();
+        }
+      } catch (e) {
+        console.error('Erro ao ler arquivo de dados:', e);
+      }
+    }
+
+    async function initFileStorage() {
+      try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
+      if (!FS_SUPPORTED) { fileSaveState = 'unsupported'; updateSaveStatusUI(); return; }
+      try { dataFileHandle = (await idbGet('dataFileHandle')) || null; } catch (e) { dataFileHandle = null; }
+      if (dataFileHandle) {
+        try {
+          const perm = await dataFileHandle.queryPermission({ mode: 'readwrite' });
+          if (perm === 'granted') {
+            await syncWithFile(false);
+            fileSaveState = 'ok';
+          } else {
+            fileSaveState = 'permission';
+          }
+        } catch (e) {
+          fileSaveState = 'error';
+        }
+      }
+      updateSaveStatusUI();
+    }
+
+    function scheduleFileSave() {
+      if (!dataFileHandle) return;
+      clearTimeout(fileSaveTimer);
+      fileSaveTimer = setTimeout(writeDataFile, 600);
+    }
+
+    async function writeDataFile() {
+      if (!dataFileHandle) return;
+      try {
+        const perm = await dataFileHandle.queryPermission({ mode: 'readwrite' });
+        if (perm !== 'granted') { fileSaveState = 'permission'; updateSaveStatusUI(); return; }
+        const writable = await dataFileHandle.createWritable();
+        await writable.write(JSON.stringify(exportPayload(), null, 2));
+        await writable.close();
+        fileSaveState = 'ok';
+        lastFileSaveAt = new Date();
+      } catch (e) {
+        console.error('Erro ao gravar arquivo:', e);
+        fileSaveState = 'error';
+      }
+      updateSaveStatusUI();
+    }
+
+    async function connectDataFile() {
+      if (!FS_SUPPORTED) {
+        alert('Seu navegador não suporta salvamento direto em arquivo. Use o Google Chrome ou o Microsoft Edge, ou faça backups manuais (JSON).');
+        return;
+      }
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'dados-alta-performance.json',
+          types: [{ description: 'Dados do sistema (JSON)', accept: { 'application/json': ['.json'] } }]
+        });
+        dataFileHandle = handle;
+        await idbSet('dataFileHandle', handle);
+        await writeDataFile();
+        alert('Pronto! A partir de agora, toda alteração é salva automaticamente neste arquivo.');
+      } catch (e) {
+        if (e.name !== 'AbortError') alert('Não foi possível conectar o arquivo: ' + e.message);
+      }
+    }
+
+    async function openExistingDataFile() {
+      if (!FS_SUPPORTED) {
+        alert('Seu navegador não suporta abrir arquivos diretamente. Use "Restaurar Backup" ou o Google Chrome / Microsoft Edge.');
+        return;
+      }
+      try {
+        const [handle] = await window.showOpenFilePicker({
+          multiple: false,
+          types: [{ description: 'Dados do sistema (JSON)', accept: { 'application/json': ['.json'] } }]
+        });
+        const data = JSON.parse(await (await handle.getFile()).text());
+        if (!data || !(Array.isArray(data.leads) || Array.isArray(data.outreach))) { alert('Arquivo inválido.'); return; }
+        if (!confirm(`Carregar os dados deste arquivo (${(data.leads || []).length} leads, ${(data.meetings || []).length} reuniões)?\nOs dados atuais do navegador serão substituídos.`)) return;
+
+        const perm = await handle.requestPermission({ mode: 'readwrite' });
+        state.outreach = data.outreach || [];
+        state.leads = data.leads || [];
+        state.meetings = data.meetings || [];
+        if (perm === 'granted') {
+          dataFileHandle = handle;
+          await idbSet('dataFileHandle', handle);
+        }
+        saveState();
+        renderAll();
+        updateSaveStatusUI();
+        alert('Dados carregados' + (perm === 'granted' ? ' e salvamento automático ativado neste arquivo.' : '.'));
+      } catch (e) {
+        if (e.name !== 'AbortError') alert('Erro ao abrir arquivo: ' + e.message);
+      }
+    }
+
+    async function reauthorizeDataFile() {
+      if (!dataFileHandle) { switchTab('settings'); return; }
+      try {
+        const perm = await dataFileHandle.requestPermission({ mode: 'readwrite' });
+        if (perm === 'granted') {
+          await syncWithFile(true);
+          await writeDataFile();
+        } else {
+          fileSaveState = 'permission';
+          updateSaveStatusUI();
+        }
+      } catch (e) {
+        alert('Não foi possível reativar: ' + e.message);
+      }
+    }
+
+    async function disconnectDataFile() {
+      if (!confirm('Desativar o salvamento automático em arquivo? (Os dados continuam no navegador e o arquivo não é apagado)')) return;
+      dataFileHandle = null;
+      try { await idbDel('dataFileHandle'); } catch (e) {}
+      fileSaveState = FS_SUPPORTED ? 'none' : 'unsupported';
+      updateSaveStatusUI();
+    }
+
+    function handleSaveStatusClick() {
+      if (fileSaveState === 'permission') reauthorizeDataFile();
+      else switchTab('settings');
+    }
+
+    function updateSaveStatusUI() {
+      const btn = document.getElementById('save-status');
+      const panel = document.getElementById('file-save-panel-status');
+      const base = 'hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold border transition ';
+      const time = lastFileSaveAt ? lastFileSaveAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+      const name = dataFileHandle ? escapeHtml(dataFileHandle.name) : '';
+      let cls, html, panelHtml;
+
+      switch (fileSaveState) {
+        case 'ok':
+          cls = 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30 hover:bg-emerald-500/25';
+          html = `<i data-lucide="hard-drive" class="w-3.5 h-3.5"></i> Salvo em arquivo${time ? ' · ' + time : ''}`;
+          panelHtml = `<span class="text-emerald-700 font-semibold">✅ Ativo</span> — arquivo: <strong>${name}</strong>${time ? ' · último salvamento às ' + time : ''}`;
+          break;
+        case 'permission':
+          cls = 'bg-amber-500/20 text-amber-200 border-amber-400/40 hover:bg-amber-500/30 animate-pulse';
+          html = `<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> Clique para reativar salvamento`;
+          panelHtml = `<span class="text-amber-700 font-semibold">⚠ Arquivo conectado (${name}), mas o navegador pede sua autorização novamente.</span>
+            <button onclick="reauthorizeDataFile()" class="ml-2 px-2 py-1 rounded-md bg-amber-500 text-white font-semibold">Autorizar agora</button>`;
+          break;
+        case 'error':
+          cls = 'bg-rose-500/20 text-rose-200 border-rose-400/40';
+          html = `<i data-lucide="x-circle" class="w-3.5 h-3.5"></i> Erro ao salvar arquivo`;
+          panelHtml = `<span class="text-rose-700 font-semibold">Erro ao gravar no arquivo ${name}.</span> Tente conectar o arquivo novamente. Seus dados continuam salvos no navegador.`;
+          break;
+        case 'unsupported':
+          cls = 'border-slate-600 text-slate-300 hover:bg-slate-800';
+          html = `<i data-lucide="database" class="w-3.5 h-3.5"></i> Salvo no navegador`;
+          panelHtml = 'Seu navegador não suporta salvamento automático em arquivo. Use o <strong>Google Chrome</strong> ou <strong>Microsoft Edge</strong>, ou faça backups manuais.';
+          break;
+        default:
+          cls = 'border-slate-600 text-slate-300 hover:bg-slate-800';
+          html = `<i data-lucide="database" class="w-3.5 h-3.5"></i> Salvo só no navegador`;
+          panelHtml = 'Desativado — os dados estão salvos apenas no navegador.';
+      }
+
+      if (btn) { btn.className = base + cls; btn.innerHTML = html; }
+      if (panel) panel.innerHTML = panelHtml;
+      const disc = document.getElementById('btn-disconnect-file');
+      if (disc) disc.classList.toggle('hidden', !dataFileHandle);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
